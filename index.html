@@ -47,7 +47,7 @@ details{font-size:12px;color:var(--mut);margin-top:6px}
 <div id="msg">Выбери наживку и забрасывай!</div>
 <button id="act">🎣 ЗАБРОСИТЬ</button>
 <details><summary>Как играть</summary>Забрось удочку и жди поклёвку. Когда клюнет — жми «Подсекай». Потом ДЕРЖИ кнопку (или пробел), чтобы тянуть. Если шкала натяжения заполнится — леска лопнет. Если рыба рвётся — отпусти, но не отпускай надолго: сорвётся. Снасти изнашиваются: чини и улучшай в магазине.</details>
-<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="col">📖 Рыбы</button></div>
+<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
 <div class="bx" id="pn"></div>
 </div>
 <div id="md" hidden><div id="mc"></div></div>
@@ -181,7 +181,7 @@ if(A.k=='grab'&&a<2){R('#ff3b3b',37,18+((a*10|0)%2),2,4);R('#ff3b3b',37,23,2,1)}
 let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);draw(ts);requestAnimationFrame(loop)}
 let tab='inv';
 const rrc=i=>{const d=mx(i)-S.rods[i].hp;return d<.05?0:Math.ceil(d*(.5+i*.6))},lrc=()=>{const L=LINES[S.ln.t],d=L.hp-S.ln.hp;return d<.05?0:Math.ceil(d*.4*(1+S.ln.t*.8))},upc=()=>Math.round((40+RODS[S.eq].price*.35)*(S.rods[S.eq].l+1));
-function render(){let h='';
+function render(){let h='';if(tab=='fr')return frTab();
 if(tab=='inv'){h+='<h3>Наживка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.sel==i?'on':''}" data-a="sel,${i}">${i<0?'Без наживки':BAITS[i].n+' ×'+S.b[i]}</button>`).join('')+'</div>';
 h+='<h3>Прикормка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.cs==i?'on':''}" data-a="cs,${i}">${i<0?'Без прикормки':CH[i].n+' ×'+S.ch[i]}</button>`).join('')+'</div>';
 const gr={};S.inv.forEach(x=>{(gr[x.i]=gr[x.i]||{n:0,s:0}).n++;gr[x.i].s+=x.p});const ks=Object.keys(gr),tot=S.inv.reduce((a,x)=>a+x.p,0);
@@ -225,6 +225,16 @@ const exportSave=()=>{if(g.st!='idle'||!$('#md').hidden)return;let rs=0;$('#mc')
 $('#ld').onclick=()=>{try{const v=JSON.parse(decodeURIComponent(escape(atob($('#cd').value.trim()))));if(!v||typeof v.c!='number')throw 0;S=v;sv();location.reload()}catch(e){$('#cd').value='Неверный код'}};
 $('#rs').onclick=()=>{if(!rs++){$('#rs').textContent='ТОЧНО? ЖМИ ЕЩЁ';return}noSave=1;try{localStorage.removeItem('pf1')}catch(e){}location.reload()}};
 setInterval(()=>{sv();SZ()},3000);addEventListener('pagehide',sv);document.addEventListener('visibilitychange',()=>{if(document.hidden)sv()});
+const TG=(window.Telegram&&Telegram.WebApp)||null,APP='https://t.me/picselnei_ribak_bot/directlink';
+function tgInfo(){try{return{id:TG.initDataUnsafe.user.id,sp:TG.initDataUnsafe.start_param||''}}catch(e){return null}}
+const shr=(p,tx)=>TG.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(APP+'?startapp='+p)+'&text='+encodeURIComponent(tx));
+const askK=T=>shr('k'+T.id,'Я зашёл в «Пиксельный Рыбак» 🎣 Нажми, чтобы получить 10🪙 за приглашение!');
+function frTab(){const T=tgInfo(),n=(S.rf||[]).length;$('#pn').innerHTML='<h3>Друзья</h3><p>Позови друга по своей ссылке: он получит <b>10🪙</b> в подарок, а ты — <b>10🪙</b>, когда он зайдёт и сообщит тебе об этом.</p><p class="mu">Друзей засчитано: '+n+'</p>'+(T?'<button class="wide" id="iv">👥 ПРИГЛАСИТЬ ДРУГА</button>'+(S.rb?'<button class="wide g" id="sk2">СООБЩИТЬ ПРИГЛАСИВШЕМУ</button>':''):'<p class="mu">Приглашения работают внутри Телеграма.</p>');
+if(T){$('#iv').onclick=()=>shr('r'+T.id,'Заходи в «Пиксельный Рыбак» 🎣 — лови рыбу и получи 10🪙 в подарок!');if(S.rb)$('#sk2').onclick=()=>askK(T)}}
+function refs(){const T=tgInfo(),m=T&&T.sp.match(/^([rk])(\d+)$/);if(!m)return;const id=+m[2];if(id==T.id)return;S.rf=S.rf||[];
+if(m[1]=='r'&&!S.rb){S.rb=id;S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">🎁</div><h2>Тебя пригласил друг!</h2><p>+10🪙 тебе в подарок. Отправь другу сообщение — он тоже получит 10🪙.</p><button id="sk">СООБЩИТЬ ДРУГУ</button> <button id="ok" class="g">ПОЗЖЕ</button>';$('#md').hidden=false;$('#sk').onclick=()=>{askK(T);$('#md').hidden=true};$('#ok').onclick=()=>{$('#md').hidden=true}}
+else if(m[1]=='k'&&!S.rf.includes(id)){S.rf.push(id);S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">👥</div><h2>Друг в игре!</h2><p>+10🪙 за приглашение.</p><button id="ok">ОК</button>';$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true}}}
+const rt=setInterval(()=>{if($('#md').hidden){clearInterval(rt);refs()}},500);
 upd2();daily();SZ();requestAnimationFrame(loop);
 </script>
 <script>try{const w=Telegram.WebApp;w.ready();w.expand();}catch(e){}</script></body></html>

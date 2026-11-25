@@ -28,7 +28,7 @@ button.g{background:var(--pn);color:var(--ink)}button.on{background:var(--ok);co
 #msg{min-height:20px;text-align:center;font-weight:bold;margin:6px 0}
 .rw{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:2px dashed #8885}
 .rw span{flex:1}.ch{display:flex;flex-wrap:wrap;gap:6px}
-.tbs{display:flex;gap:6px;margin-bottom:8px}.tbs button{flex:1}
+.tbs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}.tbs button{flex:1 1 30%}
 .gr{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
 .cl{border:3px solid;padding:4px;text-align:center;font-size:11px;display:flex;flex-direction:column;align-items:center;gap:2px}
 small,.mu{color:var(--mut)}.wide{width:100%;margin-top:8px}
@@ -47,10 +47,13 @@ details{font-size:12px;color:var(--mut);margin-top:6px}
 <div id="msg">Выбери наживку и забрасывай!</div>
 <button id="act">🎣 ЗАБРОСИТЬ</button>
 <details><summary>Как играть</summary>Забрось удочку и жди поклёвку. Когда клюнет — жми «Подсекай». Потом ДЕРЖИ кнопку (или пробел), чтобы тянуть. Если шкала натяжения заполнится — леска лопнет. Если рыба рвётся — отпусти, но не отпускай надолго: сорвётся. Снасти изнашиваются: чини и улучшай в магазине.</details>
-<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
+<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="gear">🔧 Мастерская</button><button class="g" data-t="map">🗺 Карта</button><button class="g" data-t="house">🏠 Дом</button><button class="g" data-t="pond">🐟 Пруд</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
 <div class="bx" id="pn"></div>
 </div>
 <div id="md" hidden><div id="mc"></div></div>
+<script src="scenes.js"></script>
+<script src="house.js"></script>
+<script src="pond.js"></script>
 <script>
 const $=s=>document.querySelector(s),fm=n=>Math.round(n).toLocaleString('ru');
 const T=['Обычная','Необычная','Редкая','Эпическая','Легендарная'],TC=['#8d99a6','#3fae5a','#3b8de0','#a45be0','#f0b323'];
@@ -82,6 +85,37 @@ const FD=[['Плотва',0,8,1,.1,.5,'s','#9bb0c0','#e3eef5','#e07050'],['Ок�
 ['Радужный левиафан',4,3800,9.4,300,900,'s','#40e0d0','#fff080','#ff60c0',4],
 ['Жемчужина',5,300,1,.01,.05,'shell','#f0f0f8','#ffffff','#000'],['Старинная монета',5,80,1,.01,.05,'star','#d8a830','#fff','#000'],['Бутылка с запиской',5,150,1,.1,.3,'bottle','#4aa8c8','#fff','#000'],['Золотой слиток',5,700,1,1,2,'can','#d8a820','#fff0a0','#000',2],
 ['Рваная перчатка',-1,1,.5,.1,.3,'boot','#a07040','#d0a070','#000'],['Деревянная щепка',-1,1,.5,.1,.5,'bone','#9a7040','#fff','#000'],['Пустая бочка',-1,3,.6,3,10,'tire','#8a5a2a','#fff','#000']];
+const mix=(h,k)=>'#'+[1,3,5].map(i=>{let v=parseInt(h.substr(i,2),16);v=Math.round(k<0?v*(1+k):v+(255-v)*k);return Math.max(0,Math.min(255,v)).toString(16).padStart(2,'0')}).join('');
+const NEW=[['Вобла',0,7,1,.1,.6,'s','#b8c0c8'],['Ряпушка',0,7,1,.05,.3,'s','#a0b8c8'],['Хамса',0,6,1,.02,.1,'s','#8aa8c0',1],
+['Сазан',1,40,2.4,1,10,'r','#b09050'],['Жерех',1,42,2.6,.8,6,'s','#8a9aa8'],['Хариус',1,46,2.6,.3,2,'s','#7a7aa8'],['Омуль',1,44,2.5,.5,3,'s','#a8b8b0'],['Пелядь',1,38,2.3,.4,2.5,'r','#a8a898'],['Кутум',1,36,2.4,.5,4,'s','#98a8a0'],
+['Треска',1,38,2.4,1,12,'s','#8a7a50',1],['Пикша',1,36,2.3,.5,4,'s','#7a8090',1],['Зубатка',1,40,2.7,1,10,'s','#6a7a80',1],['Барабулька',1,34,2.3,.1,.6,'s','#d8806a',1],['Минтай',1,30,2.2,.3,2,'s','#8a8a70',1],
+['Стерлядь',2,140,4.2,1,12,'s','#9a8a6a'],['Ленок',2,125,4,1,8,'s','#b0807a'],['Нельма',2,150,4.3,2,30,'s','#c0c8d0'],['Муксун',2,135,4.1,1,8,'s','#a8b0a0'],['Кумжа',2,128,4.1,1,10,'s','#8a98a8'],['Кета',2,132,4.2,2,10,'s','#a85a6a'],['Горбуша',2,105,3.8,1,4,'s','#8090a8'],['Кижуч',2,122,4.1,2,8,'s','#7aa0b8'],['Змееголов',2,112,3.9,1,8,'s','#6a7a40'],['Калкан',2,128,4.1,2,15,'fl','#9a8a60',1],['Пеламида',2,135,4.4,1,6,'s','#4a6a98',2],
+['Севрюга',3,520,6,5,50,'s','#7a8a98'],['Байкальский осётр',3,560,6.2,5,60,'s','#8a9a88'],['Камчатский краб',3,590,6.3,2,10,'cr','#d8603a',2],
+['Калуга',4,2200,8.6,50,500,'s','#6a7080'],['Белуга',4,3000,9,100,1000,'s','#5a6878']];
+NEW.forEach(a=>FD.push([a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7],mix(a[7],.6),mix(a[7],-.3),a[8]||0]));
+const REG=[['Москва · городской пруд',0,'#2c82d0','Плотва,Окунь,Карась,Уклейка,Красноперка,Ёрш,Лещ,Карп,Линь,Гольян,Малёк,Колюшка,Пескарь,Золотая рыбка'],
+['Подмосковье · Ока и Волга',40,'#3a8a70','Лещ,Щука,Судак,Жерех,Налим,Голавль,Язь,Сом,Стерлядь,Окунь,Плотва,Сазан'],
+['Санкт-Петербург · Нева и залив',120,'#3a78a0','Корюшка,Ряпушка,Сиг,Судак,Щука,Окунь,Налим,Сельдь,Лосось,Кумжа,Угорь'],
+['Карелия · Ладога и Онега',150,'#2a6a80','Кумжа,Форель,Радужная форель,Хариус,Сиг,Ряпушка,Щука,Окунь,Лосось,Налим'],
+['Калининград · Балтика',180,'#3a6a90','Треска,Камбала,Сельдь,Корюшка,Угорь,Судак,Лещ,Окунь'],
+['Архангельск · Белое море',220,'#4a7aa0','Сельдь,Корюшка,Камбала,Треска,Лосось,Нельма,Сиг,Налим'],
+['Мурманск · Баренцево море',300,'#1c5a8a','Треска,Пикша,Зубатка,Палтус,Лосось,Кумжа,Камчатский краб,Краб-гигант,Сельдь'],
+['Краснодарский край · Чёрное и Азовское моря',250,'#2a8a8a','Хамса,Барабулька,Кефаль,Ставрида,Калкан,Пеламида,Камбала,Скумбрия,Бычок,Сазан,Судак'],
+['Крым · Чёрное море',280,'#2a90a8','Хамса,Кефаль,Ставрида,Барабулька,Калкан,Пеламида,Камбала,Скумбрия,Бычок'],
+['Астрахань · дельта Волги',280,'#5a8a60','Вобла,Сазан,Сом,Судак,Лещ,Жерех,Щука,Осётр,Севрюга,Стерлядь,Белуга'],
+['Дагестан · Каспий',330,'#2a7a9a','Кутум,Вобла,Сельдь,Кефаль,Осётр,Севрюга,Белуга,Сазан,Сом,Судак,Мойва'],
+['Урал · озёра',150,'#3a7a8a','Щука,Окунь,Пелядь,Сиг,Налим,Хариус,Лещ,Плотва,Карась,Муксун'],
+['Югра · Обь',260,'#4a6a78','Нельма,Муксун,Пелядь,Сиг,Стерлядь,Налим,Щука,Язь,Осётр'],
+['Алтай · Обь и Катунь',200,'#3a9a90','Хариус,Таймень,Ленок,Стерлядь,Судак,Лещ,Щука,Налим,Язь'],
+['Красноярск · Енисей',280,'#3a6a9a','Таймень,Ленок,Хариус,Стерлядь,Нельма,Налим,Щука,Муксун,Омуль'],
+['Байкал',340,'#1a6a9a','Омуль,Хариус,Ленок,Таймень,Байкальский осётр,Сиг,Налим,Щука,Окунь'],
+['Якутия · Лена',450,'#3a5a78','Таймень,Ленок,Нельма,Муксун,Стерлядь,Хариус,Налим,Щука,Сиг'],
+['Хабаровск · Амур',400,'#4a7a50','Калуга,Змееголов,Сазан,Таймень,Ленок,Кета,Горбуша,Щука,Сом,Осётр'],
+['Приморье · Японское море',480,'#2a6aa0','Минтай,Камбала,Корюшка,Кета,Горбуша,Кижуч,Краб-гигант,Камчатский краб,Скат,Скумбрия'],
+['Сахалин и Курилы',550,'#2a5a8a','Кета,Горбуша,Кижуч,Минтай,Камбала,Палтус,Камчатский краб,Лосось,Корюшка'],
+['Камчатка',650,'#1a5a7a','Кета,Горбуша,Кижуч,Лосось,Кумжа,Палтус,Камчатский краб,Минтай,Радужная форель'],
+['Мировой океан · финал',2500,'#102a5a','Тунец,Рыба-меч,Марлин,Белая акула,Манта,Рыба-луна,Скат,Удильщик,Кракен-малёк,Рыба-дракон,Мегалодон-малёк,Радужный левиафан,Глубинный ангел,Морской дракон,Рыба-клоун,Рыба-ёж,Медуза,Осьминог,Кальмар,Омар,Мурена,Барракуда,Дорадо,Пиранья,Тиляпия,Электроугорь,Целакант,Ракушка,Морская звезда']].map(a=>({n:a[0],p:a[1],w:a[2],f:a[3],s:new Set(a[3].split(','))}));
+const av=f=>(f.t<0||f.t==5||REG[S.reg].s.has(f.n))&&f.z<=g.z,regFish=i=>REG[i].s.size;
 const F=FD.map((a,id)=>({id,n:a[0],t:a[1],p:a[2],d:a[3],w0:a[4],w1:a[5],sh:a[6],c:[a[7],a[8],a[9]],z:a[10]||0}));
 const SH={s:["....dddd......",".ddbbbbbbdd.ff","dbebbbbbbbbfff","dlllllllllllff","..dddddddd.ff."],
 r:["....dddd......","..ddbbbbdd..f.",".dbbbbbbbd.fff","dbebbbbbbbdfff","dbbbbbbbbbdfff",".dlllllllld.fff".slice(0,14),"..ddlllldd..f.","....dddd......"],
@@ -102,10 +136,10 @@ const BOATS=[{n:'Надувная лодка',price:250,hp:50,z:1},{n:'Плос�
 const ZN=['Берег','Мелководье','Открытая вода','Глубина','Океан'],ZB=[0,.35,.8,1.4,2.2],ZM=[1,1.1,1.25,1.5,2],FU=[0,3,8,18,40];
 const mz=()=>{const B=S.boats[S.boat];return B&&B.hp>0?BOATS[S.boat].z:0};
 const brc=i=>{const d=BOATS[i].hp-S.boats[i].hp;return d<.05?0:Math.ceil(d*(.8+i*1.2))};
-function zn(){const m=mz();if(S.zone>m)S.zone=m;$('#zn').innerHTML=ZN.map((n,i)=>`<button class="g ${S.zone==i?'on':''}" data-z="${i}" ${i>m||g.st!='idle'?'disabled':''}>${i>m?'🔒 ':''}${n}${FU[i]?' ⛽'+FU[i]:''}</button>`).join('')}
+function zn(){const m=mz();if(S.zone>m)S.zone=m;$('#zn').innerHTML='<small style="width:100%">📍 '+REG[S.reg].n+' · видов рыб: '+regFish(S.reg)+'</small>'+ZN.map((n,i)=>`<button class="g ${S.zone==i?'on':''}" data-z="${i}" ${i>m||g.st!='idle'?'disabled':''}>${i>m?'🔒 ':''}${n}${FU[i]?' ⛽'+FU[i]:''}</button>`).join('')}
 let S;try{S=JSON.parse(localStorage.getItem('pf1'))}catch(e){}
 S=S||{c:30,b:[5,0,0,0],sel:0,rods:{0:{hp:40,l:0}},eq:0,ln:{t:0,hp:40},inv:[],col:{}};
-S.ch=S.ch||[0,0,0,0];S.cs=S.cs??-1;S.boats=S.boats||{};S.boat=S.boat??-1;S.zone=S.zone||0;
+S.ch=S.ch||[0,0,0,0];S.cs=S.cs??-1;S.boats=S.boats||{};S.boat=S.boat??-1;S.zone=S.zone||0;S.reg=S.reg||0;S.regs=S.regs||[0];
 let svok=1,noSave=0;const sv=()=>{if(noSave)return;try{localStorage.setItem('pf1',JSON.stringify(S));svok=1}catch(e){svok=0}};
 const mx=i=>Math.round(RODS[i].hp*(1+.12*S.rods[i].l));
 const RS=()=>{const r=RODS[S.eq],o=S.rods[S.eq];return{pow:r.pow*(1+.12*o.l),mx:mx(S.eq),luck:r.luck,o}};
@@ -116,8 +150,8 @@ function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${B
 $('#gr').innerHTML=`<div>🎣 ${RODS[S.eq].n}${r.o.l?' +'+r.o.l:''}<br><b>${Math.ceil(r.o.hp)}/${r.mx}</b>${bar(r.o.hp/r.mx)}</div><div>🧵 ${L.n}<br><b>${Math.ceil(S.ln.hp)}/${L.hp}</b>${bar(S.ln.hp/L.hp)}</div>${bo}`}
 function btn(){const a=$('#act'),m={idle:'🎣 ЗАБРОСИТЬ',cast:'…',wait:'⏳ ЖДЁМ… (тап — смотать)',bite:'❗ ПОДСЕКАЙ!',fight:'💪 ДЕРЖИ — ТЯНИ!',result:'…'};a.textContent=m[g.st];a.style.background=g.st=='bite'?'#d33':'';$('#hud').hidden=g.st!='fight';zn()}
 function upd2(){hdr();btn();render()}
-function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z],TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0];F.forEach(f=>f.t>=0&&f.t<5&&cn[f.t]++);
-const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,f.z>g.z?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+b*1.5*f.t):f.t==-1?30/cj*jf:2.8/ct*(1+b)]);
+function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z]+comfort()*.008,TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0];F.forEach(f=>f.t>=0&&f.t<5&&av(f)&&cn[f.t]++);
+const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,!av(f)?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+b*1.5*f.t):f.t==-1?30/cj*jf:2.8/ct*(1+b)]);
 let s=L.reduce((a,x)=>a+x[1],0)*Math.random();for(const x of L){s-=x[1];if(s<=0)return x[0]}return L[0][0]}
 function cast(){const r=RS();
 if(r.o.hp<=0)return say('Удочка сломана! Почини или купи новую в магазине 🏪');
@@ -154,12 +188,10 @@ if(g.te>=100)fail('snap');else if(g.p<=0)fail('slip');else if(g.p>=100)win()}}
 const X=$('#cv').getContext('2d');$('#cv').width=160;$('#cv').height=90;X.imageSmoothingEnabled=false;
 const R=(c,x,y,w,h)=>{X.fillStyle=c;X.fillRect(x|0,y|0,w|0,h|0)};
 function draw(t){
-R('#7ec8f5',0,0,160,52);R('#9bd6fa',0,18,160,18);R('#bfe8fc',0,36,160,16);R('#ffe27a',128,7,11,11);R('#fff7c2',130,9,7,7);
-const c1=(t/1500)%210-30,c2=(t/2200+90)%210-30;R('#fff',c1,13,18,4);R('#fff',c1+4,10,10,4);R('#fff',c2,22,14,3);R('#fff',c2+3,20,8,3);
-if(S.zone<2){R('#4f9a5b',112,43,48,9);R('#6bbf72',90,47,70,5);R('#3b2a1a',146,40,2,6);R('#2f7a3f',142,34,10,7)}
+drawBG(t);
 R('#2c82d0',0,52,160,12);R('#2473c0',0,64,160,14);R('#1c62aa',0,78,160,12);
 for(let i=0;i<14;i++)R('#8fd0f7',((i*13+t/120*(1+i%3*.3))%170)-5,54+(i*7%34),5,1);
-if(S.zone>0){X.globalAlpha=.13*(S.zone-1);R('#001a40',0,52,160,38);X.globalAlpha=1;const bb=Math.sin(t/500)*1.2;R('#8a5a2b',14,50+bb,34,4);R('#6e4620',17,54+bb,28,2);R('#fff',14,50+bb,34,1)}else{R('#8a5a2b',0,50,52,4);R('#6e4620',0,54,52,2);R('#5a3a18',6,56,3,22);R('#5a3a18',40,56,3,22)}
+X.globalAlpha=.28;R(REG[S.reg].w,0,52,160,38);X.globalAlpha=1;if(S.zone>0){X.globalAlpha=.13*(S.zone-1);R('#001a40',0,52,160,38);X.globalAlpha=1;const bb=Math.sin(t/500)*1.2;R('#8a5a2b',14,50+bb,34,4);R('#6e4620',17,54+bb,28,2);R('#fff',14,50+bb,34,1)}else{R('#8a5a2b',0,50,52,4);R('#6e4620',0,54,52,2);R('#5a3a18',6,56,3,22);R('#5a3a18',40,56,3,22)}
 const A=g.an,at=A?A.t:0,jp=A&&(A.k=='win'||A.k=='epic'),dy=jp?-Math.round(Math.abs(Math.sin(at*8))*(A.k=='epic'?7:4)):0,ox=A&&A.k=='grab'?Math.round(Math.sin(at*40)):0,pz=jp?1:A&&A.k=='grab'?2:A?3:0;
 R('#2d4a8a',28+ox,44+dy,6,6);R('#d9473a',28+ox,36+dy,6,8);R('#f2c9a0',29+ox,31+dy,4,5);R('#e8c34a',27+ox,29+dy,8,2);R('#e8c34a',29+ox,27+dy,4,2);R('#222',30+ox,33+dy,1,1);R('#222',32+ox,33+dy,1,1);
 if(pz==1)R('#b22',30,35+dy,3,2);else R('#722',31+ox,35+dy,1,1);
@@ -186,24 +218,25 @@ if(A.k=='win'||A.k=='epic'){const dy=-Math.round(Math.abs(Math.sin(a*8))*(A.k=='
 for(let i=0;i<(A.k=='epic'?10:4);i++){const x=14+i*13%40+Math.sin(a*5+i)*3,y=((a*30+i*17)%34)+6;R(['#ffe14d','#ff6b9a','#5fd0ff','#8dff6b'][i%4],x,y,2,2)}}
 else if(a<2.5){const x=34+a*5,y=26-a*7;X.globalAlpha=Math.max(0,1-a/2.5);R('#fff',x,y,8,3);R('#fff',x+1,y-1,6,1);R('#fff',x+1,y+3,6,1);R('#aab',x+2,y+1,1,1);R('#aab',x+4,y+1,1,1);R('#aab',x+6,y+1,1,1);X.globalAlpha=1;
 if(A.k=='grab'&&a<2){R('#ff3b3b',37,18+((a*10|0)%2),2,4);R('#ff3b3b',37,23,2,1)}}}
-let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);draw(ts);requestAnimationFrame(loop)}
+let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);draw(ts);modLoop(ts);requestAnimationFrame(loop)}
 let tab='inv';
 const rrc=i=>{const d=mx(i)-S.rods[i].hp;return d<.05?0:Math.ceil(d*(.5+i*.6))},lrc=()=>{const L=LINES[S.ln.t],d=L.hp-S.ln.hp;return d<.05?0:Math.ceil(d*.4*(1+S.ln.t*.8))},upc=()=>Math.round((40+RODS[S.eq].price*.35)*(S.rods[S.eq].l+1));
-function render(){let h='';if(tab=='fr')return frTab();
+function mapTab(){$('#pn').innerHTML='<h3>Карта России</h3><p class="mu">Купи поездку в регион — у каждого своя рыба. Морских рыб нужно искать на лодке. Сейчас: <b>'+REG[S.reg].n+'</b></p>'+REG.map((r,i)=>{const o=S.regs.includes(i);return '<div class="rw"><span><b>'+r.n+'</b><br><small>видов рыб: '+r.s.size+(o?'':' · поездка '+fm(r.p)+'🪙')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'}).join('')}
+function render(){let h='';if(tab=='fr')return frTab();if(tab=='map')return mapTab();if(tab=='house')return houseTab();if(tab=='pond')return pondTab();
 if(tab=='inv'){h+='<h3>Наживка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.sel==i?'on':''}" data-a="sel,${i}">${i<0?'Без наживки':BAITS[i].n+' ×'+S.b[i]}</button>`).join('')+'</div>';
 h+='<h3>Прикормка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.cs==i?'on':''}" data-a="cs,${i}">${i<0?'Без прикормки':CH[i].n+' ×'+S.ch[i]}</button>`).join('')+'</div>';
 const gr={};S.inv.forEach(x=>{(gr[x.i]=gr[x.i]||{n:0,s:0}).n++;gr[x.i].s+=x.p});const ks=Object.keys(gr),tot=S.inv.reduce((a,x)=>a+x.p,0);
 h+='<h3>Улов</h3>'+(ks.length?ks.map(k=>`<div class="rw">${im(k,36)}<span>${F[k].n} ×${gr[k].n}</span><button data-a="sell,${k}">${fm(gr[k].s)}🪙</button></div>`).join('')+`<button class="wide" data-a="sa">ПРОДАТЬ ВСЁ · ${fm(tot)}🪙</button>`:'<p class="mu">Пусто. Иди лови!</p>')}
-else if(tab=='shop'){
-h+='<h3>Наживка</h3>'+BAITS.map((b,i)=>`<div class="rw"><span><b>${b.n}</b> (есть ${S.b[i]})<br><small>${b.tx}</small></span><span style="flex:none"><button data-a="bb,${i},1">+1 · ${b.price}🪙</button> <button data-a="bb,${i},5">+5</button></span></div>`).join('');
-h+='<h3>Прикормка</h3>'+CH.map((c,i)=>`<div class="rw"><span><b>${c.n}</b> (есть ${S.ch[i]})<br><small>шанс редкой рыбы +${Math.round(c.rare*100)}%</small></span><span style="flex:none"><button data-a="cb,${i},1">+1 · ${c.price}🪙</button> <button data-a="cb,${i},5">+5</button></span></div>`).join('');
-h+='<h3>Лодки</h3>'+BOATS.map((b,i)=>{const o=S.boats[i];return `<div class="rw"><span><b>${b.n}</b><br><small>HP ${b.hp} · плавает до: ${ZN[b.z]}</small></span>${o?S.boat==i?'<b>ПОД ТОБОЙ</b>':`<button data-a="eb,${i}">ВЗЯТЬ</button>`:`<button data-a="bo,${i}">${fm(b.price)}🪙</button>`}</div>`}).join('');
-h+='<h3>Удочки</h3>'+RODS.map((r,i)=>{const o=S.rods[i];return `<div class="rw"><span><b>${r.n}</b><br><small>сила ×${r.pow} · HP ${r.hp} · удача +${Math.round(r.luck*100)}%</small></span>${o?S.eq==i?'<b>НАДЕТА</b>':`<button data-a="er,${i}">ВЗЯТЬ</button>`:`<button data-a="br,${i}">${fm(r.price)}🪙</button>`}</div>`}).join('');
-const o=S.rods[S.eq];h+=`<div class="rw"><span>Улучшить «${RODS[S.eq].n}» (${o.l}/5)<br><small>+12% силы и прочности</small></span>${o.l<5?`<button data-a="ur">${fm(upc())}🪙</button>`:'<b>MAX</b>'}</div>`;
-h+='<h3>Ремонт (в долг до −150🪙)</h3>'+Object.keys(S.rods).map(i=>{const c=rrc(i);return `<div class="rw"><span>🎣 ${RODS[i].n}: ${Math.ceil(S.rods[i].hp)}/${mx(i)}</span>${c?`<button data-a="rr,${i}">${c}🪙</button>`:'<small>ОК</small>'}</div>`}).join('');
-h+=Object.keys(S.boats).map(i=>{const c=brc(i);return `<div class="rw"><span>⛵ ${BOATS[i].n}: ${Math.ceil(S.boats[i].hp)}/${BOATS[i].hp}</span>${c?`<button data-a="rb,${i}">${c}🪙</button>`:'<small>ОК</small>'}</div>`}).join('');
-const L=LINES[S.ln.t],lc=lrc();h+=`<div class="rw"><span>🧵 ${L.n}: ${Math.ceil(S.ln.hp)}/${L.hp}</span>${lc?`<button data-a="rl">${lc}🪙</button>`:'<small>ОК</small>'}</div>`;
-h+='<h3>Леска</h3>'+LINES.map((l,i)=>i>S.ln.t?`<div class="rw"><span><b>${l.n}</b><br><small>прочность ×${l.s} · HP ${l.hp}</small></span><button data-a="bl,${i}">${fm(l.price)}🪙</button></div>`:'').join('')}
+else if(tab=='shop'||tab=='gear'){
+if(tab=='shop')h+='<h3>Наживка</h3>'+BAITS.map((b,i)=>`<div class="rw"><span><b>${b.n}</b> (есть ${S.b[i]})<br><small>${b.tx}</small></span><span style="flex:none"><button data-a="bb,${i},1">+1 · ${b.price}🪙</button> <button data-a="bb,${i},5">+5</button></span></div>`).join('');
+if(tab=='shop')h+='<h3>Прикормка</h3>'+CH.map((c,i)=>`<div class="rw"><span><b>${c.n}</b> (есть ${S.ch[i]})<br><small>шанс редкой рыбы +${Math.round(c.rare*100)}%</small></span><span style="flex:none"><button data-a="cb,${i},1">+1 · ${c.price}🪙</button> <button data-a="cb,${i},5">+5</button></span></div>`).join('');
+if(tab=='shop')h+='<h3>Лодки</h3>'+BOATS.map((b,i)=>{const o=S.boats[i];return `<div class="rw"><span><b>${b.n}</b><br><small>HP ${b.hp} · плавает до: ${ZN[b.z]}</small></span>${o?S.boat==i?'<b>ПОД ТОБОЙ</b>':`<button data-a="eb,${i}">ВЗЯТЬ</button>`:`<button data-a="bo,${i}">${fm(b.price)}🪙</button>`}</div>`}).join('');
+if(tab=='shop')h+='<h3>Удочки</h3>'+RODS.map((r,i)=>{const o=S.rods[i];return `<div class="rw"><span><b>${r.n}</b><br><small>сила ×${r.pow} · HP ${r.hp} · удача +${Math.round(r.luck*100)}%</small></span>${o?S.eq==i?'<b>НАДЕТА</b>':`<button data-a="er,${i}">ВЗЯТЬ</button>`:`<button data-a="br,${i}">${fm(r.price)}🪙</button>`}</div>`}).join('');
+const o=S.rods[S.eq];if(tab=='gear')h+=`<div class="rw"><span>Улучшить «${RODS[S.eq].n}» (${o.l}/5)<br><small>+12% силы и прочности</small></span>${o.l<5?`<button data-a="ur">${fm(upc())}🪙</button>`:'<b>MAX</b>'}</div>`;
+if(tab=='gear')h+='<h3>Ремонт (в долг до −150🪙)</h3>'+Object.keys(S.rods).map(i=>{const c=rrc(i);return `<div class="rw"><span>🎣 ${RODS[i].n}: ${Math.ceil(S.rods[i].hp)}/${mx(i)}</span>${c?`<button data-a="rr,${i}">${c}🪙</button>`:'<small>ОК</small>'}</div>`}).join('');
+if(tab=='gear')h+=Object.keys(S.boats).map(i=>{const c=brc(i);return `<div class="rw"><span>⛵ ${BOATS[i].n}: ${Math.ceil(S.boats[i].hp)}/${BOATS[i].hp}</span>${c?`<button data-a="rb,${i}">${c}🪙</button>`:'<small>ОК</small>'}</div>`}).join('');
+const L=LINES[S.ln.t],lc=lrc();if(tab=='gear')h+=`<div class="rw"><span>🧵 ${L.n}: ${Math.ceil(S.ln.hp)}/${L.hp}</span>${lc?`<button data-a="rl">${lc}🪙</button>`:'<small>ОК</small>'}</div>`;
+if(tab=='shop')h+='<h3>Леска</h3>'+LINES.map((l,i)=>i>S.ln.t?`<div class="rw"><span><b>${l.n}</b><br><small>прочность ×${l.s} · HP ${l.hp}</small></span><button data-a="bl,${i}">${fm(l.price)}🪙</button></div>`:'').join('')}
 else{const k=Object.keys(S.col).length;h+=`<h3>Коллекция ${k}/${F.length}</h3><div class="gr">`+F.map(f=>{const c=S.col[f.id];return `<div class="cl" style="border-color:${c?tc(f.t):'#8886'}">${im(f.id,56,!c)}<b>${c?f.n:'???'}</b><small>${c?'×'+c.n+' · '+c.b.toFixed(1)+' кг':lab(f.t)}</small></div>`}).join('')+'</div>'}
 $('#pn').innerHTML=h}
 document.querySelector('.tbs').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;tab=b.dataset.t;document.querySelectorAll('.tbs button').forEach(x=>x.classList.toggle('on',x==b));render()};
@@ -225,6 +258,7 @@ else if(a=='cb'){const n=+y;if(pay(CH[i].price*n))S.ch[i]+=n}
 else if(a=='bo'){if(pay(BOATS[i].price)){S.boats[i]={hp:BOATS[i].hp};S.boat=i;say('Новая лодка: '+BOATS[i].n+'!')}}
 else if(a=='eb')S.boat=i;
 else if(a=='rb'){if(pay(brc(i),1))S.boats[i].hp=BOATS[i].hp}
+else if(a=='tr'){const r=REG[i];if(S.regs.includes(i)||pay(r.p)){if(!S.regs.includes(i))S.regs.push(i);S.reg=i;S.zone=0;say('Ты приехал: '+r.n)}}
 sv();upd2()};
 $('#zn').onclick=e=>{const b=e.target.closest('[data-z]');if(!b||g.st!='idle')return;S.zone=+b.dataset.z;sv();say('Место: '+ZN[S.zone]+(S.zone?' — рыба здесь редкая и дорогая':''));zn()};
 const SZ=()=>{};
@@ -243,6 +277,6 @@ function refs(){const T=tgInfo(),m=T&&T.sp.match(/^([rk])(\d+)$/);if(!m)return;c
 if(m[1]=='r'&&!S.rb){S.rb=id;S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">🎁</div><h2>Тебя пригласил друг!</h2><p>+10🪙 тебе в подарок. Отправь другу сообщение — он тоже получит 10🪙.</p><button id="sk">СООБЩИТЬ ДРУГУ</button> <button id="ok" class="g">ПОЗЖЕ</button>';$('#md').hidden=false;$('#sk').onclick=()=>{askK(T);$('#md').hidden=true};$('#ok').onclick=()=>{$('#md').hidden=true}}
 else if(m[1]=='k'&&!S.rf.includes(id)){S.rf.push(id);S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">👥</div><h2>Друг в игре!</h2><p>+10🪙 за приглашение.</p><button id="ok">ОК</button>';$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true}}}
 const rt=setInterval(()=>{if($('#md').hidden){clearInterval(rt);refs()}},500);
-upd2();daily();SZ();requestAnimationFrame(loop);
+modInit();upd2();daily();SZ();requestAnimationFrame(loop);
 </script>
 <script>try{const w=Telegram.WebApp;w.ready();w.expand();}catch(e){}</script></body></html>

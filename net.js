@@ -1,7 +1,7 @@
 // Чат и рынок игроков. NET_URL пустой → демо-режим (виртуальные игроки на этом телефоне).
 // Для настоящего мультиплеера запусти server.py на сервере с HTTPS и впиши его адрес, например:
 // const NET_URL='https://my-fisher.onrender.com';
-const NET_URL='';
+const NET_URL='https://fisher-server.onrender.com';
 let mk='buy',NETD=null,mktL=[],reqL=[],netLast=0;
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function me(){let T=null;try{T=Telegram.WebApp.initDataUnsafe.user}catch(e){}if(!S.uid)S.uid=T?'t'+T.id:'u'+Math.random().toString(36).slice(2,9);return{id:S.uid,name:(T&&T.first_name)||'Рыбак '+S.uid.slice(-3)}}

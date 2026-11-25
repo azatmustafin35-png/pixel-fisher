@@ -47,13 +47,15 @@ details{font-size:12px;color:var(--mut);margin-top:6px}
 <div id="msg">Выбери наживку и забрасывай!</div>
 <button id="act">🎣 ЗАБРОСИТЬ</button>
 <details><summary>Как играть</summary>Забрось удочку и жди поклёвку. Когда клюнет — жми «Подсекай». Потом ДЕРЖИ кнопку (или пробел), чтобы тянуть. Если шкала натяжения заполнится — леска лопнет. Если рыба рвётся — отпусти, но не отпускай надолго: сорвётся. Снасти изнашиваются: чини и улучшай в магазине.</details>
-<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="gear">🔧 Мастерская</button><button class="g" data-t="map">🗺 Карта</button><button class="g" data-t="house">🏠 Дом</button><button class="g" data-t="pond">🐟 Пруд</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
+<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="gear">🔧 Мастерская</button><button class="g" data-t="map">🗺 Карта</button><button class="g" data-t="house">🏠 Дом</button><button class="g" data-t="pond">🐟 Пруд</button><button class="g" data-t="chat">💬 Чат</button><button class="g" data-t="mkt">🤝 Рынок</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
 <div class="bx" id="pn"></div>
 </div>
 <div id="md" hidden><div id="mc"></div></div>
 <script src="scenes.js"></script>
+<script src="world.js"></script>
 <script src="house.js"></script>
 <script src="pond.js"></script>
+<script src="net.js"></script>
 <script>
 const $=s=>document.querySelector(s),fm=n=>Math.round(n).toLocaleString('ru');
 const T=['Обычная','Необычная','Редкая','Эпическая','Легендарная'],TC=['#8d99a6','#3fae5a','#3b8de0','#a45be0','#f0b323'];
@@ -136,7 +138,7 @@ const BOATS=[{n:'Надувная лодка',price:250,hp:50,z:1},{n:'Плос�
 const ZN=['Берег','Мелководье','Открытая вода','Глубина','Океан'],ZB=[0,.35,.8,1.4,2.2],ZM=[1,1.1,1.25,1.5,2],FU=[0,3,8,18,40];
 const mz=()=>{const B=S.boats[S.boat];return B&&B.hp>0?BOATS[S.boat].z:0};
 const brc=i=>{const d=BOATS[i].hp-S.boats[i].hp;return d<.05?0:Math.ceil(d*(.8+i*1.2))};
-function zn(){const m=mz();if(S.zone>m)S.zone=m;$('#zn').innerHTML='<small style="width:100%">📍 '+REG[S.reg].n+' · видов рыб: '+regFish(S.reg)+'</small>'+ZN.map((n,i)=>`<button class="g ${S.zone==i?'on':''}" data-z="${i}" ${i>m||g.st!='idle'?'disabled':''}>${i>m?'🔒 ':''}${n}${FU[i]?' ⛽'+FU[i]:''}</button>`).join('')}
+function zn_old(){const m=mz();if(S.zone>m)S.zone=m;$('#zn').innerHTML='<small style="width:100%">📍 '+REG[S.reg].n+' · видов рыб: '+regFish(S.reg)+'</small>'+ZN.map((n,i)=>`<button class="g ${S.zone==i?'on':''}" data-z="${i}" ${i>m||g.st!='idle'?'disabled':''}>${i>m?'🔒 ':''}${n}${FU[i]?' ⛽'+FU[i]:''}</button>`).join('')}
 let S;try{S=JSON.parse(localStorage.getItem('pf1'))}catch(e){}
 S=S||{c:30,b:[5,0,0,0],sel:0,rods:{0:{hp:40,l:0}},eq:0,ln:{t:0,hp:40},inv:[],col:{}};
 S.ch=S.ch||[0,0,0,0];S.cs=S.cs??-1;S.boats=S.boats||{};S.boat=S.boat??-1;S.zone=S.zone||0;S.reg=S.reg||0;S.regs=S.regs||[0];
@@ -146,7 +148,7 @@ const RS=()=>{const r=RODS[S.eq],o=S.rods[S.eq];return{pow:r.pow*(1+.12*o.l),mx:
 const g={st:'idle',t:0,hold:false,down:false,bait:-1};
 const say=t=>{$('#msg').textContent=t};
 const bar=(v,c)=>`<div class="bar"><i style="width:${Math.max(0,v*100)}%;background:${c||(v>.5?'#3fae5a':v>.25?'#e8a22c':'#d33')}"></i></div>`;
-function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${BOATS[S.boat].n}<br><b>${Math.ceil(B.hp)}/${BOATS[S.boat].hp}</b>${bar(B.hp/BOATS[S.boat].hp)}</div>`:'';$('#co').textContent='🪙 '+fm(S.c)+(S.c<0?' (ДОЛГ!)':'');$('#co').style.color=S.c<0?'var(--bad)':'';
+function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${BOATS[S.boat].n}<br><b>${Math.ceil(B.hp)}/${BOATS[S.boat].hp}</b>${bar(B.hp/BOATS[S.boat].hp)}</div>`:'';$('#co').textContent='🪙 '+fm(S.c)+(S.c<0?' (ДОЛГ!)':'')+' · '+rankInfo().n;$('#co').style.color=S.c<0?'var(--bad)':'';
 $('#gr').innerHTML=`<div>🎣 ${RODS[S.eq].n}${r.o.l?' +'+r.o.l:''}<br><b>${Math.ceil(r.o.hp)}/${r.mx}</b>${bar(r.o.hp/r.mx)}</div><div>🧵 ${L.n}<br><b>${Math.ceil(S.ln.hp)}/${L.hp}</b>${bar(S.ln.hp/L.hp)}</div>${bo}`}
 function btn(){const a=$('#act'),m={idle:'🎣 ЗАБРОСИТЬ',cast:'…',wait:'⏳ ЖДЁМ… (тап — смотать)',bite:'❗ ПОДСЕКАЙ!',fight:'💪 ДЕРЖИ — ТЯНИ!',result:'…'};a.textContent=m[g.st];a.style.background=g.st=='bite'?'#d33':'';$('#hud').hidden=g.st!='fight';zn()}
 function upd2(){hdr();btn();render()}
@@ -156,7 +158,7 @@ let s=L.reduce((a,x)=>a+x[1],0)*Math.random();for(const x of L){s-=x[1];if(s<=0)
 function cast(){const r=RS();
 if(r.o.hp<=0)return say('Удочка сломана! Почини или купи новую в магазине 🏪');
 if(S.ln.hp<=0)return say('Леска порвана! Почини её в магазине 🏪');
-if(S.zone>mz()){S.zone=mz();zn();return say('Лодка сломана или не подходит — место сменено на '+ZN[S.zone]+'. Почини лодку в магазине.')}
+if(!canGo(S.reg,S.zone)){fixZone();zn();return say('Лодка сломана или не подходит — место сменено на '+ZN[S.zone]+'. Почини лодку в магазине.')}
 let bi=S.sel;if(bi>=0&&S.b[bi]<=0){bi=-1;S.sel=-1;say('Наживка кончилась — ловим без неё.')}else say('Заброс…');
 if(bi>=0)S.b[bi]--;let ci=S.cs;if(ci>=0&&S.ch[ci]<=0)ci=S.cs=-1;if(ci>=0)S.ch[ci]--;g.ch=ci;g.bait=bi;g.z=S.zone;g.an=null;S.c-=FU[g.z];g.fine=0;if(S.c>=30&&Math.random()<.05){const fn=Math.max(5,Math.min(Math.round((10+Math.random()*30)*(1+g.z*.5)),Math.floor(S.c/3)));S.c-=fn;g.fine=fn}if(g.z>0){const B=S.boats[S.boat];B.hp=Math.max(0,B.hp-(1+g.z*.8))}g.t=0;g.tx=88+Math.random()*40;sv();if(g.fine){g.st='result';const fz=g.z,fn=g.fine;$('#mc').innerHTML=`<div class="ic">🚔</div><h2>Рыбнадзор!</h2><p>Инспектор проверил лицензию на рыбалку (${ZN[fz]}).<br>Штраф: <b>−${fn}🪙</b></p><p class="mu">Такое случается в каждом двадцатом забросе. Чем дальше от берега, тем выше штраф.</p>${S.c<0?'<p class="bd">Ты ушёл в долг! Продай улов или лови ближе к берегу.</p>':''}<button id="ok">ОК</button>`;$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true;g.st='cast';g.t=0;say('Заброс…');upd2()};upd2()}else{g.st='cast';upd2()}}
 function hook(){const f=pick();g.f=f;g.fr=Math.random();g.w=f.w0+g.fr*(f.w1-f.w0);g.pr=Math.max(1,Math.round(f.p*(.6+.8*g.fr)*ZM[g.z]));
@@ -164,14 +166,14 @@ g.p=g.t<.45?45:30;g.te=15;g.pull=0;g.tg=0;g.nt=0;g.hold=g.down;g.st='fight';g.h=
 function press(){if(g.st=='idle')cast();else if(g.st=='bite')hook();else if(g.st=='wait'){g.st='idle';say('Смотал удочку. Наживка потеряна.');btn()}else if(g.st=='fight')g.hold=true}
 const act=$('#act');act.onpointerdown=e=>{e.preventDefault();g.down=true;press()};
 ['pointerup','pointerleave','pointercancel'].forEach(n=>act['on'+n]=()=>{g.down=false;g.hold=false});act.oncontextmenu=e=>e.preventDefault();
-addEventListener('keydown',e=>{if(e.code=='Space'&&!e.repeat&&$('#md').hidden){e.preventDefault();g.down=true;press()}});
+addEventListener('keydown',e=>{if(e.code=='Space'&&!e.repeat&&$('#md').hidden&&!/INPUT|TEXTAREA|SELECT/.test(e.target.tagName)){e.preventDefault();g.down=true;press()}});
 addEventListener('keyup',e=>{if(e.code=='Space'){g.down=false;g.hold=false}});
 function wear(snap){const f=g.f,o=S.rods[S.eq],dr=(2+f.d*1.6)*(snap?1.5:1),dl=snap?14:.5+f.d*.6;o.hp=Math.max(0,o.hp-dr);S.ln.hp=Math.max(0,S.ln.hp-dl);return[dr,dl]}
 function modal(ic,t,tx,a,b,col){const r=RS();let w='';if(r.o.hp<=0)w='<p class="bd">⚠ Удочка сломана!</p>';else if(S.ln.hp<=0)w='<p class="bd">⚠ Леска порвана!</p>';
 $('#mc').innerHTML=`<div class="ic">${ic}</div><h2 style="color:${col||'inherit'}">${t}</h2><p>${tx}</p><p class="mu">Удочка −${a.toFixed(1)} HP · Леска −${b.toFixed(1)} HP</p>${w}<button id="ok">ОК</button>`;
 setTimeout(()=>{$('#md').hidden=false},1500);g.st='result';g.hold=false;$('#ok').onclick=()=>{$('#md').hidden=true;g.st='idle';say('Забрасывай снова!');upd2()};sv();upd2()}
 function fail(k){const[a,b]=wear(k=='snap');g.an={k:k=='snap'?'grab':'meh',t:0};modal('💔',k=='snap'?'Леска лопнула!':'Рыба сорвалась!',(k=='snap'?'Слишком сильное натяжение. ':'Ты слишком долго не тянул. ')+'Это была: '+g.f.n+'.',a,b)}
-function win(){const f=g.f,[a,b]=wear(0);g.an={k:f.t>=3?'epic':f.t==-1?'meh':'win',t:0,fid:f.id};S.inv.push({i:f.id,w:+g.w.toFixed(2),p:g.pr});const c=S.col[f.id]||(S.col[f.id]={n:0,b:0}),nw=c.n==0;c.n++;c.b=Math.max(c.b,g.w);
+function win(){const f=g.f,[a,b]=wear(0);g.an={k:f.t>=3?'epic':f.t==-1?'meh':'win',t:0,fid:f.id};S.xp=(S.xp||0)+(f.t<0?1:4+f.t*6);S.inv.push({i:f.id,w:+g.w.toFixed(2),p:g.pr});const c=S.col[f.id]||(S.col[f.id]={n:0,b:0}),nw=c.n==0;c.n++;c.b=Math.max(c.b,g.w);
 modal(`<img class="px" width="${spr(f.id).width*7}" src="${spr(f.id).toDataURL()}">`,f.n,`<b style="color:${tc(f.t)}">${lab(f.t)}</b> · ${g.w.toFixed(2)} кг · ~${g.pr}🪙${nw?'<br><b style="color:#e8602c">НОВОЕ В КОЛЛЕКЦИИ!</b>':''}`,a,b,tc(f.t))}
 function step(dt){if(g.an){g.an.t+=dt;if(g.an.t>4)g.an=null}
 if(g.st=='cast'){g.t+=dt;if(g.t>=.6){g.st='wait';g.t=0;g.tw=(3+Math.random()*5)/(g.bait>=0?BAITS[g.bait].spd:.7);say('Ждём поклёвку…');btn()}}
@@ -221,8 +223,8 @@ if(A.k=='grab'&&a<2){R('#ff3b3b',37,18+((a*10|0)%2),2,4);R('#ff3b3b',37,23,2,1)}
 let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;step(dt);draw(ts);modLoop(ts);requestAnimationFrame(loop)}
 let tab='inv';
 const rrc=i=>{const d=mx(i)-S.rods[i].hp;return d<.05?0:Math.ceil(d*(.5+i*.6))},lrc=()=>{const L=LINES[S.ln.t],d=L.hp-S.ln.hp;return d<.05?0:Math.ceil(d*.4*(1+S.ln.t*.8))},upc=()=>Math.round((40+RODS[S.eq].price*.35)*(S.rods[S.eq].l+1));
-function mapTab(){$('#pn').innerHTML='<h3>Карта России</h3><p class="mu">Купи поездку в регион — у каждого своя рыба. Морских рыб нужно искать на лодке. Сейчас: <b>'+REG[S.reg].n+'</b></p>'+REG.map((r,i)=>{const o=S.regs.includes(i);return '<div class="rw"><span><b>'+r.n+'</b><br><small>видов рыб: '+r.s.size+(o?'':' · поездка '+fm(r.p)+'🪙')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'}).join('')}
-function render(){let h='';if(tab=='fr')return frTab();if(tab=='map')return mapTab();if(tab=='house')return houseTab();if(tab=='pond')return pondTab();
+function mapTab_old(){$('#pn').innerHTML='<h3>Карта России</h3><p class="mu">Купи поездку в регион — у каждого своя рыба. Морских рыб нужно искать на лодке. Сейчас: <b>'+REG[S.reg].n+'</b></p>'+REG.map((r,i)=>{const o=S.regs.includes(i);return '<div class="rw"><span><b>'+r.n+'</b><br><small>видов рыб: '+r.s.size+(o?'':' · поездка '+fm(r.p)+'🪙')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'}).join('')}
+function render(){let h='';if(tab=='fr')return frTab();if(tab=='map')return mapTab();if(tab=='house')return houseTab();if(tab=='pond')return pondTab();if(tab=='chat')return chatTab();if(tab=='mkt')return mktTab();
 if(tab=='inv'){h+='<h3>Наживка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.sel==i?'on':''}" data-a="sel,${i}">${i<0?'Без наживки':BAITS[i].n+' ×'+S.b[i]}</button>`).join('')+'</div>';
 h+='<h3>Прикормка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.cs==i?'on':''}" data-a="cs,${i}">${i<0?'Без прикормки':CH[i].n+' ×'+S.ch[i]}</button>`).join('')+'</div>';
 const gr={};S.inv.forEach(x=>{(gr[x.i]=gr[x.i]||{n:0,s:0}).n++;gr[x.i].s+=x.p});const ks=Object.keys(gr),tot=S.inv.reduce((a,x)=>a+x.p,0);
@@ -258,7 +260,7 @@ else if(a=='cb'){const n=+y;if(pay(CH[i].price*n))S.ch[i]+=n}
 else if(a=='bo'){if(pay(BOATS[i].price)){S.boats[i]={hp:BOATS[i].hp};S.boat=i;say('Новая лодка: '+BOATS[i].n+'!')}}
 else if(a=='eb')S.boat=i;
 else if(a=='rb'){if(pay(brc(i),1))S.boats[i].hp=BOATS[i].hp}
-else if(a=='tr'){const r=REG[i];if(S.regs.includes(i)||pay(r.p)){if(!S.regs.includes(i))S.regs.push(i);S.reg=i;S.zone=0;say('Ты приехал: '+r.n)}}
+else if(a=='tr')travel(i);
 sv();upd2()};
 $('#zn').onclick=e=>{const b=e.target.closest('[data-z]');if(!b||g.st!='idle')return;S.zone=+b.dataset.z;sv();say('Место: '+ZN[S.zone]+(S.zone?' — рыба здесь редкая и дорогая':''));zn()};
 const SZ=()=>{};

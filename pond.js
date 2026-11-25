@@ -8,8 +8,7 @@ const CAP=()=>POND_SZ[S.pd.lv.size];
 const pmax=f=>F[f.i].w1*1.25,ripe=f=>f.w>=pmax(f)*.9;
 const pval=f=>{const q=F[f.i],r=(f.w-q.w0)/Math.max(.01,pmax(f)-q.w0);return Math.max(1,Math.round(q.p*(.5+1.1*Math.min(1.3,r))))};
 const cleanCost=()=>Math.ceil(10+S.pd.fish.length*3);
-function modInit(){S.hs=S.hs||{hp:55,t:Date.now(),u:{},mat:{wood:0,brick:0,glass:0,stone:0,metal:0}};
-S.pd=S.pd||{t:Date.now(),q:100,lv:{size:0,filter:0,auto:0},feed:[10,0,0],fs:0,fish:[]};houseWear();pondTick()}
+function modInit(){houseInit();S.pd=S.pd||{t:Date.now(),q:100,lv:{size:0,filter:0,auto:0},feed:[10,0,0],fs:0,fish:[]};worldInit();netInit();houseWear();pondTick()}
 function pondTick(){const p=S.pd,now=Date.now();let dm=Math.min((now-p.t)/60000,720);if(dm<1/6)return;p.t=now;
 const n=Math.ceil(dm),st=dm/n;let sold=0,earn=0;
 for(let k=0;k<n;k++){const fc=p.fish.length,need=fc/10*st;let mul=0;
@@ -59,5 +58,5 @@ Q('#888',20,8,12,10);Q('#c83a3a',18,6,16,3);if(p.feed[p.fs]>=1&&p.fish.length)fo
 if(p.lv.filter>0){Q('#444',130,6,18,12);Q('#2a2a2a',132,8,14,4);Q('#3af',134,13,3,2);Q('#555',138,18,3,8)}
 if(p.lv.filter>=4)for(let i=0;i<8;i++)Q('#cfeeff',100+(i%2)*3,82-((t/60+i*14)%58),1+i%2,1+i%2);
 p.fish.forEach((f,j)=>{const sp=spr(f.i),sc=.5+Math.min(1.3,f.w/pmax(f))*.9,x=10+((j*47)%120)+Math.sin(t/900+j*1.7)*10,y=30+((j*29)%44)+Math.sin(t/700+j)*3;Y.drawImage(sp,x|0,y|0,Math.floor(sp.width*sc),Math.floor(sp.height*sc))})}
-function modLoop(ts){if(tab=='house')houseDraw(ts);else if(tab=='pond')pondDraw(ts);
+function modLoop(ts){if(tab=='house')houseDraw(ts);else if(tab=='pond')pondDraw(ts);netTick(ts);
 if(ts-(modLoop.l||0)>4000){modLoop.l=ts;pondTick();houseWear();const a=$('#pst');if(a&&tab=='pond')a.innerHTML=pondStat();if(tab=='house')houseStat()}}

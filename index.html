@@ -47,12 +47,14 @@ details{font-size:12px;color:var(--mut);margin-top:6px}
 <div id="msg">Выбери наживку и забрасывай!</div>
 <button id="act">🎣 ЗАБРОСИТЬ</button>
 <details><summary>Как играть</summary>Забрось удочку и жди поклёвку. Когда клюнет — жми «Подсекай». Потом ДЕРЖИ кнопку (или пробел), чтобы тянуть. Если шкала натяжения заполнится — леска лопнет. Если рыба рвётся — отпусти, но не отпускай надолго: сорвётся. Снасти изнашиваются: чини и улучшай в магазине.</details>
-<div class="tbs" style="margin-top:12px"><button class="g on" data-t="inv">🎒 Рюкзак</button><button class="g" data-t="shop">🏪 Магазин</button><button class="g" data-t="gear">🔧 Мастерская</button><button class="g" data-t="map">🗺 Карта</button><button class="g" data-t="house">🏠 Дом</button><button class="g" data-t="pond">🐟 Пруд</button><button class="g" data-t="chat">💬 Чат</button><button class="g" data-t="mkt">🤝 Рынок</button><button class="g" data-t="col">📖 Рыбы</button><button class="g" data-t="fr">👥 Друзья</button></div>
+<div id="nav"></div><div id="sub"></div>
 <div class="bx" id="pn"></div>
 </div>
 <div id="md" hidden><div id="mc"></div></div>
 <script src="scenes.js"></script>
 <script src="world.js"></script>
+<script src="content.js"></script>
+<script src="ui.js"></script>
 <script src="house.js"></script>
 <script src="pond.js"></script>
 <script src="net.js"></script>
@@ -152,8 +154,8 @@ function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${B
 $('#gr').innerHTML=`<div>🎣 ${RODS[S.eq].n}${r.o.l?' +'+r.o.l:''}<br><b>${Math.ceil(r.o.hp)}/${r.mx}</b>${bar(r.o.hp/r.mx)}</div><div>🧵 ${L.n}<br><b>${Math.ceil(S.ln.hp)}/${L.hp}</b>${bar(S.ln.hp/L.hp)}</div>${bo}`}
 function btn(){const a=$('#act'),m={idle:'🎣 ЗАБРОСИТЬ',cast:'…',wait:'⏳ ЖДЁМ… (тап — смотать)',bite:'❗ ПОДСЕКАЙ!',fight:'💪 ДЕРЖИ — ТЯНИ!',result:'…'};a.textContent=m[g.st];a.style.background=g.st=='bite'?'#d33':'';$('#hud').hidden=g.st!='fight';zn()}
 function upd2(){hdr();btn();render()}
-function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z]+comfort()*.008,TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0];F.forEach(f=>f.t>=0&&f.t<5&&av(f)&&cn[f.t]++);
-const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,!av(f)?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+b*1.5*f.t):f.t==-1?30/cj*jf:2.8/ct*(1+b)]);
+function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z]+comfort()*.008,TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0],nb=g.bait<0,nc=g.ch<0,pen=nb&&nc?[1,.6,.3,.12,.04]:nb||nc?[1,.9,.75,.55,.35]:[1,1,1,1,1],mq=(nb?0:BAITS[g.bait].rare)+(nc?0:CH[g.ch].rare);F.forEach(f=>f.t>=0&&f.t<5&&av(f)&&cn[f.t]++);
+const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,!av(f)?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+b*2.2*f.t)*pen[f.t]:f.t==-1?30/cj*jf:f.t==6?(nb&&nc?0:.05*(1+mq*1.5)):2.8/ct*(1+b)]);
 let s=L.reduce((a,x)=>a+x[1],0)*Math.random();for(const x of L){s-=x[1];if(s<=0)return x[0]}return L[0][0]}
 function cast(){const r=RS();
 if(r.o.hp<=0)return say('Удочка сломана! Почини или купи новую в магазине 🏪');
@@ -193,7 +195,7 @@ function draw(t){
 drawBG(t);
 R('#2c82d0',0,52,160,12);R('#2473c0',0,64,160,14);R('#1c62aa',0,78,160,12);
 for(let i=0;i<14;i++)R('#8fd0f7',((i*13+t/120*(1+i%3*.3))%170)-5,54+(i*7%34),5,1);
-X.globalAlpha=.28;R(REG[S.reg].w,0,52,160,38);X.globalAlpha=1;if(S.zone>0){X.globalAlpha=.13*(S.zone-1);R('#001a40',0,52,160,38);X.globalAlpha=1;const bb=Math.sin(t/500)*1.2;R('#8a5a2b',14,50+bb,34,4);R('#6e4620',17,54+bb,28,2);R('#fff',14,50+bb,34,1)}else{R('#8a5a2b',0,50,52,4);R('#6e4620',0,54,52,2);R('#5a3a18',6,56,3,22);R('#5a3a18',40,56,3,22)}
+X.globalAlpha=.28;R(REG[S.reg].w,0,52,160,38);X.globalAlpha=1;if(S.zone>0){X.globalAlpha=.13*(S.zone-1);R('#001a40',0,52,160,38);X.globalAlpha=1;drawBoat(t)}else{R('#8a5a2b',0,50,52,4);R('#6e4620',0,54,52,2);R('#5a3a18',6,56,3,22);R('#5a3a18',40,56,3,22)}
 const A=g.an,at=A?A.t:0,jp=A&&(A.k=='win'||A.k=='epic'),dy=jp?-Math.round(Math.abs(Math.sin(at*8))*(A.k=='epic'?7:4)):0,ox=A&&A.k=='grab'?Math.round(Math.sin(at*40)):0,pz=jp?1:A&&A.k=='grab'?2:A?3:0;
 R('#2d4a8a',28+ox,44+dy,6,6);R('#d9473a',28+ox,36+dy,6,8);R('#f2c9a0',29+ox,31+dy,4,5);R('#e8c34a',27+ox,29+dy,8,2);R('#e8c34a',29+ox,27+dy,4,2);R('#222',30+ox,33+dy,1,1);R('#222',32+ox,33+dy,1,1);
 if(pz==1)R('#b22',30,35+dy,3,2);else R('#722',31+ox,35+dy,1,1);
@@ -224,7 +226,7 @@ let last=0;function loop(ts){const dt=Math.min(.05,(ts-last)/1000||0);last=ts;st
 let tab='inv';
 const rrc=i=>{const d=mx(i)-S.rods[i].hp;return d<.05?0:Math.ceil(d*(.5+i*.6))},lrc=()=>{const L=LINES[S.ln.t],d=L.hp-S.ln.hp;return d<.05?0:Math.ceil(d*.4*(1+S.ln.t*.8))},upc=()=>Math.round((40+RODS[S.eq].price*.35)*(S.rods[S.eq].l+1));
 function mapTab_old(){$('#pn').innerHTML='<h3>Карта России</h3><p class="mu">Купи поездку в регион — у каждого своя рыба. Морских рыб нужно искать на лодке. Сейчас: <b>'+REG[S.reg].n+'</b></p>'+REG.map((r,i)=>{const o=S.regs.includes(i);return '<div class="rw"><span><b>'+r.n+'</b><br><small>видов рыб: '+r.s.size+(o?'':' · поездка '+fm(r.p)+'🪙')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'}).join('')}
-function render(){let h='';if(tab=='fr')return frTab();if(tab=='map')return mapTab();if(tab=='house')return houseTab();if(tab=='pond')return pondTab();if(tab=='chat')return chatTab();if(tab=='mkt')return mktTab();
+function render(){let h='';navDraw();if(UI[tab])return UI[tab]();if(tab=='fr')return frTab();if(tab=='map')return mapTab();if(tab=='house')return houseTab();if(tab=='pond')return pondTab();if(tab=='chat')return chatTab();if(tab=='mkt')return mktTab();
 if(tab=='inv'){h+='<h3>Наживка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.sel==i?'on':''}" data-a="sel,${i}">${i<0?'Без наживки':BAITS[i].n+' ×'+S.b[i]}</button>`).join('')+'</div>';
 h+='<h3>Прикормка</h3><div class="ch">'+[-1,0,1,2,3].map(i=>`<button class="g ${S.cs==i?'on':''}" data-a="cs,${i}">${i<0?'Без прикормки':CH[i].n+' ×'+S.ch[i]}</button>`).join('')+'</div>';
 const gr={};S.inv.forEach(x=>{(gr[x.i]=gr[x.i]||{n:0,s:0}).n++;gr[x.i].s+=x.p});const ks=Object.keys(gr),tot=S.inv.reduce((a,x)=>a+x.p,0);
@@ -241,7 +243,6 @@ const L=LINES[S.ln.t],lc=lrc();if(tab=='gear')h+=`<div class="rw"><span>🧵 ${L
 if(tab=='shop')h+='<h3>Леска</h3>'+LINES.map((l,i)=>i>S.ln.t?`<div class="rw"><span><b>${l.n}</b><br><small>прочность ×${l.s} · HP ${l.hp}</small></span><button data-a="bl,${i}">${fm(l.price)}🪙</button></div>`:'').join('')}
 else{const k=Object.keys(S.col).length;h+=`<h3>Коллекция ${k}/${F.length}</h3><div class="gr">`+F.map(f=>{const c=S.col[f.id];return `<div class="cl" style="border-color:${c?tc(f.t):'#8886'}">${im(f.id,56,!c)}<b>${c?f.n:'???'}</b><small>${c?'×'+c.n+' · '+c.b.toFixed(1)+' кг':lab(f.t)}</small></div>`}).join('')+'</div>'}
 $('#pn').innerHTML=h}
-document.querySelector('.tbs').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;tab=b.dataset.t;document.querySelectorAll('.tbs button').forEach(x=>x.classList.toggle('on',x==b));render()};
 $('#pn').onclick=e=>{const b=e.target.closest('[data-a]');if(!b)return;if(g.st!='idle')return say('Сначала закончи рыбалку.');
 const[a,x,y]=b.dataset.a.split(','),i=+x;
 const pay=(n,cr)=>{if(S.c-n<(cr?-150:0)){say(cr?'Кредит исчерпан (долг до 150🪙)':'Не хватает монет 🪙');return false}S.c-=n;return true};
@@ -264,7 +265,7 @@ else if(a=='tr')travel(i);
 sv();upd2()};
 $('#zn').onclick=e=>{const b=e.target.closest('[data-z]');if(!b||g.st!='idle')return;S.zone=+b.dataset.z;sv();say('Место: '+ZN[S.zone]+(S.zone?' — рыба здесь редкая и дорогая':''));zn()};
 const SZ=()=>{};
-function daily(){const n=new Date(),d=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();if(S.dl==d)return;S.dl=d;S.c+=10;sv();upd2();$('#mc').innerHTML=`<div class="ic">🎁</div><h2>Ежедневная награда</h2><p>+10🪙 за вход! Заходи завтра за новой наградой.</p><button id="ok">ОК</button>`;$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true}}
+function daily(){const n=new Date(),d=n.getFullYear()+'-'+(n.getMonth()+1)+'-'+n.getDate();if(S.dl==d)return;S.dl=d;S.c+=50;sv();upd2();$('#mc').innerHTML=`<div class="ic">🎁</div><h2>Ежедневная награда</h2><p>+50🪙 за вход! Заходи завтра за новой наградой.</p><button id="ok">ОК</button>`;$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true}}
 const exportSave=()=>{if(g.st!='idle'||!$('#md').hidden)return;let rs=0;$('#mc').innerHTML=`<h2>💾 Сохранение</h2><p class="mu">Прогресс сохраняется сам${svok?'':' (⚠ здесь браузер не даёт — перенеси игру кодом)'}. Скопируй код, чтобы перенести игру на другое устройство.</p><textarea id="cd" rows="4" style="width:100%;font-size:10px">${btoa(unescape(encodeURIComponent(JSON.stringify(S))))}</textarea><p><button id="ld">ЗАГРУЗИТЬ КОД</button> <button id="rs" class="g">СБРОС</button></p><button id="ok">ЗАКРЫТЬ</button>`;$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true};
 $('#ld').onclick=()=>{try{const v=JSON.parse(decodeURIComponent(escape(atob($('#cd').value.trim()))));if(!v||typeof v.c!='number')throw 0;S=v;sv();location.reload()}catch(e){$('#cd').value='Неверный код'}};
 $('#rs').onclick=()=>{if(!rs++){$('#rs').textContent='ТОЧНО? ЖМИ ЕЩЁ';return}noSave=1;try{localStorage.removeItem('pf1')}catch(e){}location.reload()}};
@@ -273,9 +274,9 @@ const TG=(window.Telegram&&Telegram.WebApp)||null,APP='https://t.me/picselnei_ri
 function tgInfo(){try{return{id:TG.initDataUnsafe.user.id,sp:TG.initDataUnsafe.start_param||''}}catch(e){return null}}
 const shr=(p,tx)=>TG.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(APP+'?startapp='+p)+'&text='+encodeURIComponent(tx));
 const askK=T=>shr('k'+T.id,'Я зашёл в «Пиксельный Рыбак» 🎣 Нажми, чтобы получить 10🪙 за приглашение!');
-function frTab(){const T=tgInfo(),n=(S.rf||[]).length;$('#pn').innerHTML='<h3>Друзья</h3><p>Позови друга по своей ссылке: он получит <b>10🪙</b> в подарок, а ты — <b>10🪙</b>, когда он зайдёт и сообщит тебе об этом.</p><p class="mu">Друзей засчитано: '+n+'</p>'+(S.rf||[]).map((x,i)=>'<div class="rw"><span>👤 Друг №'+(i+1)+'</span><b>+10🪙</b></div>').join('')+(S.rb?'<p class="mu">Ты пришёл по приглашению друга.</p>':'')+'<p class="mu">Как получить награду: друг заходит по твоей ссылке, нажимает «Сообщить» и отправляет тебе сообщение, а ты открываешь его — +10🪙.</p>'+(T?'<button class="wide" id="iv">👥 ПРИГЛАСИТЬ ДРУГА</button>'+(S.rb?'<button class="wide g" id="sk2">СООБЩИТЬ ПРИГЛАСИВШЕМУ</button>':''):'<p class="mu">Приглашения работают внутри Телеграма.</p>');
+function frTab_old(){const T=tgInfo(),n=(S.rf||[]).length;$('#pn').innerHTML='<h3>Друзья</h3><p>Позови друга по своей ссылке: он получит <b>10🪙</b> в подарок, а ты — <b>10🪙</b>, когда он зайдёт и сообщит тебе об этом.</p><p class="mu">Друзей засчитано: '+n+'</p>'+(S.rf||[]).map((x,i)=>'<div class="rw"><span>👤 Друг №'+(i+1)+'</span><b>+10🪙</b></div>').join('')+(S.rb?'<p class="mu">Ты пришёл по приглашению друга.</p>':'')+'<p class="mu">Как получить награду: друг заходит по твоей ссылке, нажимает «Сообщить» и отправляет тебе сообщение, а ты открываешь его — +10🪙.</p>'+(T?'<button class="wide" id="iv">👥 ПРИГЛАСИТЬ ДРУГА</button>'+(S.rb?'<button class="wide g" id="sk2">СООБЩИТЬ ПРИГЛАСИВШЕМУ</button>':''):'<p class="mu">Приглашения работают внутри Телеграма.</p>');
 if(T){$('#iv').onclick=()=>shr('r'+T.id,'Заходи в «Пиксельный Рыбак» 🎣 — лови рыбу и получи 10🪙 в подарок!');if(S.rb)$('#sk2').onclick=()=>askK(T)}}
-function refs(){const T=tgInfo(),m=T&&T.sp.match(/^([rk])(\d+)$/);if(!m)return;const id=+m[2];if(id==T.id)return;S.rf=S.rf||[];
+function refs_old(){const T=tgInfo(),m=T&&T.sp.match(/^([rk])(\d+)$/);if(!m)return;const id=+m[2];if(id==T.id)return;S.rf=S.rf||[];
 if(m[1]=='r'&&!S.rb){S.rb=id;S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">🎁</div><h2>Тебя пригласил друг!</h2><p>+10🪙 тебе в подарок. Отправь другу сообщение — он тоже получит 10🪙.</p><button id="sk">СООБЩИТЬ ДРУГУ</button> <button id="ok" class="g">ПОЗЖЕ</button>';$('#md').hidden=false;$('#sk').onclick=()=>{askK(T);$('#md').hidden=true};$('#ok').onclick=()=>{$('#md').hidden=true}}
 else if(m[1]=='k'&&!S.rf.includes(id)){S.rf.push(id);S.c+=10;sv();upd2();$('#mc').innerHTML='<div class="ic">👥</div><h2>Друг в игре!</h2><p>+10🪙 за приглашение.</p><button id="ok">ОК</button>';$('#md').hidden=false;$('#ok').onclick=()=>{$('#md').hidden=true}}}
 const rt=setInterval(()=>{if($('#md').hidden){clearInterval(rt);refs()}},500);

@@ -1,6 +1,6 @@
 // Донат: покупка монет и VIP. Игрок нажимает «Купить» → открывается чат с продавцом в Телеграме (с готовым текстом заказа).
 // Продавец присылает реквизиты, после оплаты даёт игроку КОД. Код вводится в игре и проверяется сервером (server.py), поэтому подделать его нельзя.
-const DONATE_TG='';   // ← впиши свой Telegram без @, например: const DONATE_TG='my_fish_shop';
+const DONATE_TG='perepwww';   // ← впиши свой Telegram без @, например: const DONATE_TG='my_fish_shop';
 const PACKS=[{k:'c250',n:'250 000 монет',rub:80,coins:250000},{k:'c500',n:'500 000 монет',rub:149,coins:500000},{k:'c1000',n:'1 000 000 монет',rub:299,coins:1000000},{k:'vip',n:'VIP: 1 000 000 монет + 20% удачи на 2 дня',rub:499,coins:1000000,vipDays:2}];
 const vipLeft=()=>Math.max(0,(S.vip||0)-Date.now()),vipLuck=()=>vipLeft()>0?.2:0;
 const vipText=()=>{const m=Math.floor(vipLeft()/60000);return Math.floor(m/1440)+' д '+Math.floor(m%1440/60)+' ч '+m%60+' мин'};

@@ -1,8 +1,8 @@
 // Мир: больше регионов, моря (нужен катер), океаны (нужна яхта), звания, новые удочки и лески.
 const ZR=[[0,1],[2,3],[3,4]],REGT=['🏞 Берега, реки и озёра (берег и мелководье)','🌊 Моря (нужен катер или яхта)','🚢 Океаны (нужна яхта)'];
-const RANKS=[[1,'Новичок'],[3,'Любитель'],[6,'Опытный'],[10,'Мастер'],[15,'Профессионал'],[22,'Капитан'],[30,'Магнат'],[40,'Олигарх']];
+const RANKS=[[1,'Новичок'],[3,'Любитель'],[6,'Опытный'],[10,'Мастер'],[15,'Профессионал'],[22,'Капитан'],[30,'Магнат'],[40,'Олигарх'],[55,'Легенда морей'],[70,'Повелитель вод'],[90,'Титан рыбалки'],[120,'Бессмертный рыбак']];
 const lvlN=()=>Math.floor(Math.sqrt((S.xp||0)/12))+1;
-function rankInfo(){const l=lvlN();let k=0;RANKS.forEach((a,i)=>{if(l>=a[0])k=i});const n=RANKS[k+1];return{n:RANKS[k][1],l,next:n?n[1]+' с ур. '+n[0]:'высшее звание'}}
+function rankInfo(){const l=lvlN();let k=0;RANKS.forEach((a,i)=>{if(l>=a[0])k=i});const n=RANKS[k+1];if(S.king)return{n:'Абсолютный Король Рыбалки',l,next:'это высшее звание',king:1};return{n:RANKS[k][1],l,next:n?n[1]+' с ур. '+n[0]:'стать первым в рейтинге и получить звание Короля'}}
 const canGo=(r,z)=>{const t=REG[r].t||0;return z>=ZR[t][0]&&z<=ZR[t][1]&&mz()>=(t==0?(z?1:0):t==1?3:4)};
 const fixZone=()=>{S.zone=ZR[REG[S.reg].t||0][0]};
 const regCount=i=>{const t=REG[i].t||0;return [...REG[i].s].filter(n=>{const f=F.find(q=>q.n==n);return f&&f.z<=ZR[t][1]}).length};
@@ -14,10 +14,11 @@ function zn(){const t=REG[S.reg].t||0,lo=ZR[t][0],hi=ZR[t][1];if(S.zone<lo||S.zo
 let h='<small style="width:100%">📍 '+REG[S.reg].n+' · видов рыб: '+regCount(S.reg)+' · '+rankInfo().n+'</small>';
 for(let i=lo;i<=hi;i++){const ok=canGo(S.reg,i);h+=`<button class="g ${S.zone==i?'on':''}" data-z="${i}" ${!ok||g.st!='idle'?'disabled':''}>${ok?'':'🔒 '}${ZN[i]}${FU[i]?' ⛽'+FU[i]:''}</button>`}
 $('#zn').innerHTML=h}
-function mapTab(){let h='<h3>Карта</h3><p class="mu">Сейчас: <b>'+REG[S.reg].n+'</b> · звание: <b>'+rankInfo().n+'</b> (ур. '+lvlN()+', дальше: '+rankInfo().next+')</p>';
-[0,1,2].forEach(t=>{h+='<h3>'+REGT[t]+'</h3>';REG.forEach((r,i)=>{if((r.t||0)!=t)return;const o=S.regs.includes(i);
-h+='<div class="rw"><span><b>'+r.n+'</b><br><small>видов рыб: '+regCount(i)+(o?'':' · поездка '+fm(r.p)+'🪙')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'})});
-$('#pn').innerHTML=h}
+let mpk=0;
+function mapTab(){let h='<p class="mu">Сейчас: <b>'+REG[S.reg].n+'</b> · звание: <b>'+rankInfo().n+'</b> (ур. '+lvlN()+', дальше: '+rankInfo().next+')</p><div class="pill">'+['🏞 Реки и озёра','🌊 Моря','🚢 Океаны'].map((n,i)=>`<button class="g ${mpk==i?'on':''}" data-mp="${i}">${n}</button>`).join('')+'</div><p class="mu">'+['Берег и мелководье. Лодка нужна только для мелководья.','Нужен катер или яхта.','Нужна яхта.'][mpk]+'</p>';
+REG.map((r,i)=>[r,i]).filter(a=>(a[0].t||0)==mpk).sort((a,b)=>a[0].p-b[0].p).forEach(([r,i])=>{const o=S.regs.includes(i);
+h+='<div class="rw"><span><b>'+(r.bt?'⭐ ':'')+r.n+'</b><br><small>видов рыб: '+regCount(i)+(o?'':' · поездка '+fm(r.p)+'🪙')+(r.bt?' · чаще редкие и мифические рыбы':'')+'</small></span>'+(S.reg==i?'<b>ТУТ</b>':'<button data-a="tr,'+i+'">'+(o?'ЕХАТЬ':fm(r.p)+'🪙')+'</button>')+'</div>'});
+$('#pn').innerHTML=h;$('#pn').querySelectorAll('[data-mp]').forEach(b=>b.onclick=()=>{mpk=+b.dataset.mp;mapTab()})}
 // имя, цена поездки, цвет воды, рыба, тип (0 берег, 1 море, 2 океан)
 const NR=[
 ['Тверь · Селигер и Волга',60,'#3a8a70','Лещ,Щука,Судак,Окунь,Плотва,Язь,Налим,Сиг,Красноперка,Линь'],
@@ -75,6 +76,6 @@ const SC2=[
 function worldInit(){
 if(!REG[22]){NR.forEach(a=>REG.push({n:a[0],p:a[1],w:a[2],f:a[3],t:a[4]||0,s:new Set(a[3].split(','))}));SCN.push(...SC2);
  RC.push('#6a4a8a','#2a8a6a','#8a2a2a','#40e0ff');
- RODS.push({n:'Спиннинг Pro',pow:3.3,hp:230,luck:.36,price:6500},{n:'Карбон-титан',pow:4.2,hp:300,luck:.46,price:15000},{n:'Дамасская сталь',pow:5.2,hp:380,luck:.6,price:38000},{n:'Трезубец Посейдона',pow:6.5,hp:500,luck:.8,price:90000});
- LINES.push({n:'Углепластик',s:3.6,hp:240,price:5500},{n:'Нановолокно',s:5,hp:360,price:16000})}
+ RODS.push({n:'Спиннинг Pro',pow:3,hp:230,luck:.3,price:6500},{n:'Карбон-титан',pow:3.7,hp:300,luck:.36,price:15000},{n:'Дамасская сталь',pow:4.4,hp:380,luck:.42,price:38000},{n:'Трезубец Посейдона',pow:5.2,hp:500,luck:.5,price:90000});
+ LINES.push({n:'Углепластик',s:3.2,hp:240,price:5500},{n:'Нановолокно',s:3.8,hp:360,price:16000})}
 REG[21].t=2;['Таймень','Лосось'].forEach(n=>{const f=F.find(q=>q.n==n);if(f)f.z=1});S.xp=S.xp||0}

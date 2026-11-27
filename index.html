@@ -51,15 +51,16 @@ details{font-size:12px;color:var(--mut);margin-top:6px}
 <div class="bx" id="pn"></div>
 </div>
 <div id="md" hidden><div id="mc"></div></div>
-<script src="scenes.js?v=1795751579"></script>
-<script src="world.js?v=1795751579"></script>
-<script src="content.js?v=1795751579"></script>
-<script src="content2.js?v=1795751579"></script>
-<script src="ui.js?v=1795751579"></script>
-<script src="look.js?v=1795751579"></script>
-<script src="house.js?v=1795751579"></script>
-<script src="pond.js?v=1795751579"></script>
-<script src="net.js?v=1795751579"></script>
+<script src="scenes.js?v=1795806113"></script>
+<script src="world.js?v=1795806113"></script>
+<script src="content.js?v=1795806113"></script>
+<script src="content2.js?v=1795806113"></script>
+<script src="ui.js?v=1795806113"></script>
+<script src="look.js?v=1795806113"></script>
+<script src="donate.js?v=1795806113"></script>
+<script src="house.js?v=1795806113"></script>
+<script src="pond.js?v=1795806113"></script>
+<script src="net.js?v=1795806113"></script>
 <script>
 const $=s=>document.querySelector(s),fm=n=>Math.round(n).toLocaleString('ru');
 const T=['Обычная','Необычная','Редкая','Эпическая','Легендарная'],TC=['#8d99a6','#3fae5a','#3b8de0','#a45be0','#f0b323'];
@@ -152,12 +153,12 @@ const RS=()=>{const r=RODS[S.eq],o=S.rods[S.eq];return{pow:r.pow*(1+.12*o.l),mx:
 const g={st:'idle',t:0,hold:false,down:false,bait:-1};
 const say=t=>{$('#msg').textContent=t};
 const bar=(v,c)=>`<div class="bar"><i style="width:${Math.max(0,v*100)}%;background:${c||(v>.5?'#3fae5a':v>.25?'#e8a22c':'#d33')}"></i></div>`;
-function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${BOATS[S.boat].n}<br><b>${Math.ceil(B.hp)}/${BOATS[S.boat].hp}</b>${bar(B.hp/BOATS[S.boat].hp)}</div>`:'';$('#co').textContent='🪙 '+fm(S.c)+(S.c<0?' (ДОЛГ!)':'')+' · '+rankInfo().n;$('#co').style.color=S.c<0?'var(--bad)':'';
+function hdr(){const r=RS(),L=LINES[S.ln.t],B=S.boats[S.boat],bo=B?`<div>⛵ ${BOATS[S.boat].n}<br><b>${Math.ceil(B.hp)}/${BOATS[S.boat].hp}</b>${bar(B.hp/BOATS[S.boat].hp)}</div>`:'';$('#co').textContent='🪙 '+fm(S.c)+(S.c<0?' (ДОЛГ!)':'')+' · '+rankInfo().n+(vipLeft()>0?' · 👑':'');$('#co').style.color=S.c<0?'var(--bad)':'';
 $('#gr').innerHTML=`<div>🎣 ${RODS[S.eq].n}${r.o.l?' +'+r.o.l:''}<br><b>${Math.ceil(r.o.hp)}/${r.mx}</b>${bar(r.o.hp/r.mx)}</div><div>🧵 ${L.n}<br><b>${Math.ceil(S.ln.hp)}/${L.hp}</b>${bar(S.ln.hp/L.hp)}</div>${bo}`}
 function btn(){const a=$('#act'),m={idle:'🎣 ЗАБРОСИТЬ',cast:'…',wait:'⏳ ЖДЁМ… (тап — смотать)',bite:'❗ ПОДСЕКАЙ!',fight:'💪 ДЕРЖИ — ТЯНИ!',result:'…'};a.textContent=m[g.st];a.style.background=g.st=='bite'?'#d33':'';$('#hud').hidden=g.st!='fight';zn()}
 function upd2(){hdr();btn();render()}
-function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z]+comfort()*.008,TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0],bm=REG[S.reg].bt?1:0,nb=g.bait<0,nc=g.ch<0,pen=nb&&nc?[1,.6,.3,.12,.04]:nb||nc?[1,.9,.75,.55,.35]:[1,1,1,1,1],mq=(nb?0:BAITS[g.bait].rare)+(nc?0:CH[g.ch].rare);F.forEach(f=>f.t>=0&&f.t<5&&av(f)&&cn[f.t]++);
-const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,!av(f)?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+b*2.2*f.t)*pen[f.t]*(bm&&f.t>=3?2:1):f.t==-1?30/cj*jf:f.t==6?(nb&&nc?0:.05*(1+mq*1.5)*(bm?6:1)):2.8/ct*(1+b)]);
+function pick(){const r=RS(),bt=g.bait>=0?BAITS[g.bait]:{rare:0},b=bt.rare+r.luck+(g.ch>=0?CH[g.ch].rare:0)+ZB[g.z]+comfort()*.008+vipLuck(),TW=[40,22,9,3.2,.9],cn=[0,0,0,0,0],bm=REG[S.reg].bt?1:0,nb=g.bait<0,nc=g.ch<0,pen=nb&&nc?[1,.6,.3,.12,.04]:nb||nc?[1,.9,.75,.55,.35]:[1,1,1,1,1],mq=(nb?0:BAITS[g.bait].rare)+(nc?0:CH[g.ch].rare);F.forEach(f=>f.t>=0&&f.t<5&&av(f)&&cn[f.t]++);
+const jf=Math.max(.15,1-b*.8)*(g.bait<0?1.4:1),cj=F.filter(q=>q.t==-1).length,ct=F.filter(q=>q.t==5).length,L=F.map(f=>[f,!av(f)?0:f.t>=0&&f.t<5?TW[f.t]/cn[f.t]*(1+Math.min(b,5)*2.2*f.t)*pen[f.t]*(bm&&f.t>=3?2:1):f.t==-1?30/cj*jf:f.t==6?(nb&&nc?0:.05*(f.rr||1)*(1+Math.min(mq,5)*1.2)*(bm?6:1)):2.8/ct*(1+b)]);
 let s=L.reduce((a,x)=>a+x[1],0)*Math.random();for(const x of L){s-=x[1];if(s<=0)return x[0]}return L[0][0]}
 function cast(){const r=RS();
 if(r.o.hp<=0)return say('Удочка сломана! Почини или купи новую в магазине 🏪');
@@ -247,12 +248,12 @@ if(a=='sel')S.sel=i;
 else if(a=='sell'){let s=0;S.inv=S.inv.filter(v=>v.i==i?(s+=v.p,0):1);S.c+=s;say('Продано за '+fm(s)+' 🪙')}
 else if(a=='sa'){const s=S.inv.reduce((q,v)=>q+v.p,0);S.c+=s;S.inv=[];if(s)say('Продано за '+fm(s)+' 🪙')}
 else if(a=='bb'){const n=+y;if(pay(BAITS[i].price*n))S.b[i]+=n}
-else if(a=='br'){if(pay(RODS[i].price)){S.rods[i]={hp:RODS[i].hp,l:0};S.eq=i;say('Новая удочка: '+RODS[i].n+'!')}}
+else if(a=='br'){if(!canBuy('rod',i))return;if(pay(RODS[i].price)){S.rods[i]={hp:RODS[i].hp,l:0};S.eq=i;say('Новая удочка: '+RODS[i].n+'!')}}
 else if(a=='er')S.eq=i;
 else if(a=='ur'){const o=S.rods[S.eq];if(o.l<5&&pay(upc())){const m0=mx(S.eq);o.l++;o.hp+=mx(S.eq)-m0;say('Удочка улучшена!')}}
 else if(a=='rr'){if(pay(rrc(i),1))S.rods[i].hp=mx(i)}
 else if(a=='rl'){if(pay(lrc(),1))S.ln.hp=LINES[S.ln.t].hp}
-else if(a=='bl'){if(pay(LINES[i].price)){S.ln={t:i,hp:LINES[i].hp};say('Новая леска: '+LINES[i].n+'!')}}
+else if(a=='bl'){if(!canBuy('line',i))return;if(pay(LINES[i].price)){S.ln={t:i,hp:LINES[i].hp};say('Новая леска: '+LINES[i].n+'!')}}
 else if(a=='cs')S.cs=i;
 else if(a=='cb'){const n=+y;if(pay(CH[i].price*n))S.ch[i]+=n}
 else if(a=='bo'){if(pay(BOATS[i].price)){S.boats[i]={hp:BOATS[i].hp};S.boat=i;say('Новая лодка: '+BOATS[i].n+'!')}}

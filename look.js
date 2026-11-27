@@ -10,7 +10,7 @@ const BOTS=[['Старые штаны',0,'p','#6a5a3a',''],['Джинсы',300,'
 const SHOES=[['Сапоги',0,'boot','#4a3320'],['Кроссовки',400,'sn','#f0f0f0'],['Босиком',300,'bare',''],['Зелёные резиновые',350,'boot','#2a8a3a'],['Ласты',800,'fin','#2aa8d8'],['Золотые кроссовки',4000,'sn','#f0c030']];
 const LCAT=[['skin','Кожа',SKIN.map((c,i)=>[c,0])],['hs','Причёска',HAIRS],['hc','Цвет волос',HAIRC.map(h=>[h[0],h[2]])],['hat','Шляпа',HATS],['top','Верх',TOPS],['bot','Низ',BOTS],['sh','Обувь',SHOES]];
 function lookInit(){S.look=Object.assign({skin:0,hs:0,hc:0,hat:0,top:0,bot:0,sh:0},S.look||{});S.lo=S.lo||{};LCAT.forEach(c=>{S.lo[c[0]]=S.lo[c[0]]||[0]})}
-function manDraw(Q,ox,dy,pz,K){if(!S.look)lookInit();K=K||S.look;const P=(c,x,y,w,h)=>Q(c,x+ox,y+dy,w,h),sk=SKIN[K.skin],B=BOTS[K.bot],T=TOPS[K.top],SH=SHOES[K.sh],hc=HAIRC[K.hc][1],tc=T[3],t2=T[4],len=B[2]=='s'?5:10;
+function manDraw(Q,ox,dy,pz,K){K=K||S.look;const P=(c,x,y,w,h)=>Q(c,x+ox,y+dy,w,h),sk=SKIN[K.skin],B=BOTS[K.bot],T=TOPS[K.top],SH=SHOES[K.sh],hc=HAIRC[K.hc][1],tc=T[3],t2=T[4],len=B[2]=='s'?5:10;
 // штаны и шорты
 P(B[3],26,39,4,len);P(B[3],32,39,4,len);P(B[3],26,39,10,2);if(B[2]=='s'){P(sk,26,44,4,5);P(sk,32,44,4,5)}
 if(B[4]=='adidas')[26,28,33,35].forEach(x=>P('#fff',x,40,1,len-1));

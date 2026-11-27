@@ -12,7 +12,7 @@ const HU=[
 {k:'fount',n:'Фонтан',l:['Нет','Малый фонтан','Большой с подсветкой'],m:['','stone','stone'],c:120},
 {k:'lamp',n:'Фонари',l:['Нет','Керосиновые','Электрические'],m:['','metal','glass'],c:70}];
 const hu=k=>S.hs.u[k]||0,hm=()=>1+S.ht*.8;
-const comfort=()=>S.hl?(HT[S.ht].lk+HU.reduce((a,u)=>a+hu(u.k),0))*(S.hs.hp<30?.5:1)+(typeof rankInfo=='function'?rankInfo().l*.15:0):0;
+const comfort=()=>S.hl?(HT[S.ht].lk+HU.reduce((a,u)=>a+hu(u.k),0))*(S.hs.hp<30?.5:1)+(typeof rankInfo=='function'?Math.min(rankInfo().l,60)*.15:0):0;
 const hName=()=>HT[S.ht].n;
 const hRep=()=>{const m=100-S.hs.hp;return{c:m<.5?0:Math.ceil(m*1.8*hm()),t:HU[0].m[hu('wall')]||'wood',n:Math.ceil(m/10*hm())}};
 function houseInit(){if(!S.hl){const o=S.hs||{hp:55,t:Date.now(),u:{},mat:{}};S.mat=Object.assign({wood:0,brick:0,glass:0,stone:0,metal:0},o.mat||{});S.hl={0:{hp:o.hp,t:o.t||Date.now(),u:o.u||{}}};S.ht=0}
@@ -23,7 +23,7 @@ if(k=='hk'){hk=x;return upd2()}
 if(k=='buy'){const n=+y,c=MATP[x]*n;if(S.c<c)return say('Не хватает монет 🪙');S.c-=c;M[x]+=n}
 else if(k=='up'){const u=HU.find(q=>q.k==x),l=hu(x)+1,m=u.m[l],n=Math.ceil((2+3*l)*hm()),c=Math.round(u.c*l*l*hm());if(S.c<c)return say('Не хватает монет 🪙');if(M[m]<n)return say('Не хватает материала: '+MATN[m]+' ×'+n);S.c-=c;M[m]-=n;h.u[x]=l;h.hp=Math.min(100,h.hp+8);say('Улучшено: '+u.n+' — '+u.l[l])}
 else if(k=='rep'){const r=hRep();if(!r.c)return;if(S.c<r.c)return say('Не хватает монет 🪙');if(M[r.t]<r.n)return say('Для ремонта нужно: '+MATN[r.t]+' ×'+r.n);S.c-=r.c;M[r.t]-=r.n;h.hp=100;say('Дом отремонтирован 🔨')}
-else if(k=='ht'){const i=+x;if(!S.hl[i]){if(S.c<HT[i].p)return say('Не хватает монет 🪙');S.c-=HT[i].p;S.hl[i]={hp:HT[i].hp,t:Date.now(),u:i>=1?{wall:1,roof:1,win:1,door:i>=2?1:0}:{}};say('Куплен: '+HT[i].n+' (старый, нужен ремонт!)')}S.ht=i;S.hs=S.hl[i]}
+else if(k=='ht'){const i=+x;if(!S.hl[i]){if(!canBuy('house',i))return;if(S.c<HT[i].p)return say('Не хватает монет 🪙');S.c-=HT[i].p;S.hl[i]={hp:HT[i].hp,t:Date.now(),u:i>=1?{wall:1,roof:1,win:1,door:i>=2?1:0}:{}};say('Куплен: '+HT[i].n+' (старый, нужен ремонт!)')}S.ht=i;S.hs=S.hl[i]}
 else if(k=='rec'){let n=0;S.inv=S.inv.filter(v=>{const f=F[v.i];if(f.t!=-1)return 1;M[f.n=='Консервная банка'||f.n=='Ржавый якорь'?'metal':'wood']++;n++;return 0});say(n?'Мусор переработан: '+n+' шт. → материалы ♻️':'В рюкзаке нет мусора')}
 sv();upd2()}
 let hk='main';
@@ -31,7 +31,7 @@ function houseTab(){houseWear();const h=S.hs,r=hRep(),cm=comfort(),M=S.mat;
 let t='<div class="pill">'+[['main','🏠 Дом'],['up','🔨 Улучшения'],['homes','🏘 Дома'],['mats','🪵 Материалы']].map(a=>`<button class="g ${hk==a[0]?'on':''}" data-h="hk,${a[0]}">${a[1]}</button>`).join('')+'</div>';
 if(hk=='main')t+=`<h3>${hName()}</h3><canvas id="hc" width="160" height="90" style="width:100%;image-rendering:pixelated;border:3px solid var(--ln)"></canvas><div id="hst"></div><p class="mu">Удача от дома и звания: +${(cm*.8).toFixed(1)}%. Дом стареет: чем он целее, тем выше удача.</p><button class="wide" data-h="rep">🔨 РЕМОНТ ${r.c?r.c+'🪙 + '+MATI[r.t]+'×'+r.n:'(не нужен)'}</button>`;
 else if(hk=='up')t+=HU.map(u=>{const l=hu(u.k),b=l+1<u.l.length?`<button data-h="up,${u.k}">${fm(Math.round(u.c*(l+1)*(l+1)*hm()))}🪙 ${MATI[u.m[l+1]]}×${Math.ceil((2+3*(l+1))*hm())}</button>`:'<b>MAX</b>';return `<div class="rw"><span><b>${u.n}</b>: ${u.l[l]}</span>${b}</div>`}).join('');
-else if(hk=='homes')t+='<p class="mu">Новые дома тоже старые: после покупки их нужно чинить.</p>'+HT.map((q,i)=>{const o=S.hl[i];return `<div class="rw"><span><b>${q.n}</b><br><small>удача +${q.lk} · ${o?'прочность '+Math.ceil(o.hp)+'%':'старый, нужен ремонт'}</small></span>${S.ht==i?'<b>ЖИВЁШЬ</b>':`<button data-h="ht,${i}">${o?'ПЕРЕЕХАТЬ':fm(q.p)+'🪙'}</button>`}</div>`}).join('');
+else if(hk=='homes'){const s=seqInfo('house');t+='<p class="mu">Дома покупаются по порядку: сначала полностью почини текущий, потом можно купить следующий (он тоже старый, его надо чинить).</p>'+s.o.map((i,p)=>{const q=HT[i],o=S.hl[i];let b;if(S.ht==i)b='<b>ЖИВЁШЬ</b>';else if(o)b=`<button data-h="ht,${i}">ПЕРЕЕХАТЬ</button>`;else if(p<=s.pos+1&&(p<s.pos+1||repaired('house')))b=`<button data-h="ht,${i}">${fm(q.p)}🪙</button>`;else b=lockTxt('house',s,p);return `<div class="rw"><span><b>${q.n}</b><br><small>удача +${q.lk} · ${o?'прочность '+Math.ceil(o.hp)+'%':'старый, нужен ремонт'}</small></span>${b}</div>`}).join('')}
 else t+=Object.keys(MATN).map(m=>`<div class="rw"><span>${MATI[m]} ${MATN[m]}: <b>${M[m]}</b></span><span style="flex:none"><button data-h="buy,${m},1">+1 · ${MATP[m]}🪙</button> <button data-h="buy,${m},5">+5</button></span></div>`).join('')+'<button class="wide g" data-h="rec">♻️ ПЕРЕРАБОТАТЬ МУСОР В МАТЕРИАЛЫ</button>';
 $('#pn').innerHTML=t;$('#pn').querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>hAct(b.dataset.h));houseStat()}
 function houseStat(){const e=$('#hst');if(e)e.innerHTML='Прочность: <b>'+Math.ceil(S.hs.hp)+'/100</b>'+bar(S.hs.hp/100)}

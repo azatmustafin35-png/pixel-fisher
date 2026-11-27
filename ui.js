@@ -13,18 +13,28 @@ function baitTab(){const sl=(a,on)=>bt(a,on?'✔':'ВЗЯТЬ',on?'on':'g');
 $('#pn').innerHTML='<h3>🪱 Наживка</h3><p class="mu">Ускоряет клёв и повышает шанс на хорошую рыбу. Чем дороже, тем лучше. Расходуется на каждый заброс.</p>'+row('','Без наживки','клёв медленный, много мусора',sl('sel,-1',S.sel<0))+ord(BAITS,'price').map(([b,i])=>row('',b.n+' ×'+S.b[i],'клёв ×'+b.spd+(b.rare?' · редкая рыба +'+Math.round(b.rare*100)+'%':''),sl('sel,'+i,S.sel==i))).join('')
 +'<h3>🌾 Прикормка</h3><p class="mu">Привлекает крупную рыбу: чем дороже, тем выше шанс на редкий и дорогой улов.</p>'+row('','Без прикормки','',sl('cs,-1',S.cs<0))+ord(CH,'price').map(([c,i])=>row('',c.n+' ×'+S.ch[i],'редкая рыба +'+Math.round(c.rare*100)+'%',sl('cs,'+i,S.cs==i))).join('')
 +'<p class="mu">⚠ Без наживки и без прикормки дорогая рыба почти не клюёт, а мифическая не клюёт совсем.</p>'}
-function shopBTab(){$('#pn').innerHTML='<h3>🪱 Наживка</h3>'+ord(BAITS,'price').map(([b,i])=>row('',b.n+' (есть '+S.b[i]+')','клёв ×'+b.spd+(b.rare?' · редкая +'+Math.round(b.rare*100)+'%':''),bt('bb,'+i+',1','+1 · '+b.price+'🪙')+' '+bt('bb,'+i+',5','+5'))).join('')+'<h3>🌾 Прикормка</h3>'+ord(CH,'price').map(([c,i])=>row('',c.n+' (есть '+S.ch[i]+')','редкая рыба +'+Math.round(c.rare*100)+'%',bt('cb,'+i+',1','+1 · '+c.price+'🪙')+' '+bt('cb,'+i+',5','+5'))).join('')}
-function shopTTab(){$('#pn').innerHTML='<h3>🎣 Удочки</h3>'+ord(RODS,'price').map(([r,i])=>row('',r.n,'сила ×'+r.pow+' · прочность '+r.hp+' · удача +'+Math.round(r.luck*100)+'%',S.rods[i]?(S.eq==i?'<b>В РУКАХ</b>':bt('er,'+i,'ВЗЯТЬ','g')):bt('br,'+i,fm(r.price)+'🪙'))).join('')+'<h3>🧵 Леска</h3>'+ord(LINES,'price').map(([l,i])=>row('',l.n,'прочность ×'+l.s+' · HP '+l.hp,S.ln.t==i?'<b>СТОИТ</b>':i>S.ln.t?bt('bl,'+i,fm(l.price)+'🪙'):'<small>слабее</small>')).join('')}
-function shopOTab(){$('#pn').innerHTML='<h3>⛵ Лодки</h3><p class="mu">Надувная лодка и плоскодонка — для мелководья. Моря — только катер или яхта, океаны — только яхта.</p>'+BOATS.map((b,i)=>`<div class="card"><img class="px" style="width:100%;max-width:230px;display:block;margin:0 auto 6px" src="${boatImg(i)}">${row('',b.n,'HP '+b.hp+' · '+['мелководье','мелководье','моря и мелководье','океаны'][i],S.boats[i]?(S.boat==i?'<b>ПОД ТОБОЙ</b>':bt('eb,'+i,'ВЗЯТЬ','g')):bt('bo,'+i,fm(b.price)+'🪙'))}</div>`).join('')}
+let shk='bait';
+const SHOP=[['bait','🪱 Наживка'],['chum','🌾 Прикормка'],['rod','🎣 Удочки'],['line','🧵 Лески'],['reel','⚙ Катушки'],['boat','⛵ Лодки'],['deco','🎨 Декор'],['don','💎 Донат']];
+const pillsH=(L,cur,at)=>'<div class="pill" style="flex-wrap:wrap">'+L.map(a=>`<button class="g ${cur==a[0]?'on':''}" data-${at}="${a[0]}">${a[1]}</button>`).join('')+'</div>';
+function shopList(k){
+if(k=='bait')return ord(BAITS,'price').map(([b,i])=>row('',b.n+' (есть '+S.b[i]+')','клёв ×'+b.spd+(b.rare?' · редкая +'+Math.round(b.rare*100)+'%':'')+(b.tx?' · '+b.tx:''),bt('bb,'+i+',1','+1 · '+b.price+'🪙')+' '+bt('bb,'+i+',5','+5'))).join('');
+if(k=='chum')return ord(CH,'price').map(([c,i])=>row('',c.n+' (есть '+S.ch[i]+')','редкая рыба +'+Math.round(c.rare*100)+'%',bt('cb,'+i+',1','+1 · '+c.price+'🪙')+' '+bt('cb,'+i+',5','+5'))).join('');
+if(k=='rod')return rodRows();
+if(k=='line')return lineRows();
+if(k=='reel')return reelRows();
+if(k=='boat')return '<p class="mu">Надувная лодка и плоскодонка — для мелководья. Моря — только катер или яхта, океаны — только яхта.</p>'+BOATS.map((b,i)=>`<div class="card"><img class="px" style="width:100%;max-width:230px;display:block;margin:0 auto 6px" src="${boatImg(i)}">${row('',b.n,'HP '+b.hp+' · '+['мелководье','мелководье','моря и мелководье','океаны'][i],S.boats[i]?(S.boat==i?'<b>ПОД ТОБОЙ</b>':bt('eb,'+i,'ВЗЯТЬ','g')):bt('bo,'+i,fm(b.price)+'🪙'))}</div>`).join('');
+if(k=='deco')return decorRows();
+return donateRows()}
+function shopTab(){$('#pn').innerHTML=pillsH(SHOP,shk,'sk')+shopList(shk);$('#pn').querySelectorAll('[data-sk]').forEach(b=>b.onclick=()=>{shk=b.dataset.sk;shopTab()});bindX()}
 function gearTab(){const r=S.rods[S.eq],L=LINES[S.ln.t];let h='<h3>🔧 Мастерская</h3>'+row('','Улучшить «'+RODS[S.eq].n+'»','ур. '+r.l+'/5 · +12% силы и прочности',r.l<5?bt('ur',fm(upc())+'🪙'):'<b>MAX</b>')+'<h3>Ремонт (в долг до −150🪙)</h3>';
 Object.keys(S.rods).forEach(i=>{const c=rrc(i);h+=row('','🎣 '+RODS[i].n,Math.ceil(S.rods[i].hp)+'/'+mx(i)+' HP',c?bt('rr,'+i,c+'🪙'):'<small>ОК</small>')});
 const lc=lrc();h+=row('','🧵 '+L.n,Math.ceil(S.ln.hp)+'/'+L.hp+' HP',lc?bt('rl',lc+'🪙'):'<small>ОК</small>');
 Object.keys(S.boats).forEach(i=>{const c=brc(i);h+=row('','⛵ '+BOATS[i].n,Math.ceil(S.boats[i].hp)+'/'+BOATS[i].hp+' HP',c?bt('rb,'+i,c+'🪙'):'<small>ОК</small>')});$('#pn').innerHTML=h}
 const grab=f=>{f();return $('#pn').innerHTML};
 const ord=(A,k)=>A.map((x,i)=>[x,i]).sort((a,b)=>a[0][k]-b[0][k]);
-const UI={inv:()=>{$('#pn').innerHTML=grab(baitTab)+grab(invTab)},shop:()=>{$('#pn').innerHTML=grab(shopBTab)+grab(shopOTab)+grab(shopTTab)+grab(shopRTab)+grab(shopDTab);bindX()},gear:gearTab,look:()=>lookTab(),top:()=>topTab()};
+const UI={inv:()=>{$('#pn').innerHTML=grab(baitTab)+grab(invTab)},shop:shopTab,gear:gearTab,look:()=>lookTab(),top:()=>topTab()};
 function bindX(){$('#pn').querySelectorAll('[data-x]').forEach(b=>b.onclick=()=>xAct(b.dataset.x))}
-function xAct(a){const k=a.split(',')[0];if(k=='lk'||k=='lc')lookAct(a);else if(k=='db'||k=='dt')pAct(a);else if(k=='rl')reelAct(a)}
+function xAct(a){const k=a.split(',')[0];if(k=='lk'||k=='lc')lookAct(a);else if(k=='db'||k=='dt')pAct(a);else if(k=='rl')reelAct(a);else if(k=='dn')donateBuy(a.split(',')[1]);else if(k=='rd')redeemCode()}
 // ---- лодки ----
 function boatArt(Q,k,x,y){
 if(k==0){Q('#c8650a',x+2,y+4,56,2);Q('#f59a23',x+2,y,56,4);Q('#ffc266',x+4,y,52,1);Q('#f59a23',x,y+1,2,3);Q('#f59a23',x+58,y+1,2,3);Q('#9a4a05',x+6,y+6,48,1);Q('#8a5a2b',x+20,y-1,3,2);Q('#8a5a2b',x+38,y-1,3,2);Q('#333',x-2,y+1,3,6);Q('#666',x-3,y+6,3,2);Q('#ddd',x+58,y+4,3,1)}
